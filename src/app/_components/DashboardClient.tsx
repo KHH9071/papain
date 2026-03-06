@@ -7,6 +7,8 @@ import {
   getAgeGroup,
   getUpperLimits,
 } from "@/lib/kdri_data"
+import { useAppStore } from "@/lib/store"
+import { computeRoutineContribution } from "@/lib/routine_foods"
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
 type Nutrient = {
@@ -32,10 +34,6 @@ type AggregatedNutrient = {
   amount: number
   unit: string
 }
-
-// ─── 상수 ─────────────────────────────────────────────────────────────────────
-const LS_MONTHS = "papain_monthsOld"
-const LS_PRODUCTS = "papain_selectedProducts"
 
 const RECOMMENDED_NUTRIENTS = [
   "칼슘", "철", "아연", "비타민D", "비타민C", "비타민A", "오메가3", "프로바이오틱스",
@@ -84,26 +82,34 @@ function aggregateNutrients(products: Product[]): AggregatedNutrient[] {
 }
 
 // ─── 모바일 컴팩트 바 차트 ────────────────────────────────────────────────────
+const ROUTINE_COLOR = "#60a5fa" // blue-400 — 루틴 식품 전용 색상
+
 function MobileNutrientBar({
   nutrient,
   ul,
   compareAmount,
+  routineAmount,
   selectedProducts,
   colorMap,
 }: {
   nutrient: AggregatedNutrient
   ul: number
-  compareAmount: number
+  compareAmount: number   // supplement + routine 합산 (UL 단위 기준)
+  routineAmount: number   // 루틴 식품 기여분
   selectedProducts: Product[]
   colorMap: Map<number, string>
 }) {
-  const isExceeded = compareAmount > ul
-  const scaleMax = Math.max(ul, compareAmount)
-  const limitPct = (ul / scaleMax) * 100
-  const ulUnit = nutrient.name === "비타민D" && nutrient.unit === "IU" ? "μg" : nutrient.unit
+  const isExceeded   = compareAmount > ul
+  const scaleMax     = Math.max(ul, compareAmount)
+  const limitPct     = (ul / scaleMax) * 100
+  const ulUnit       = nutrient.name === "비타민D" && nutrient.unit === "IU" ? "μg" : nutrient.unit
   const displayAmount = compareAmount % 1 === 0 ? compareAmount : parseFloat(compareAmount.toFixed(2))
 
-  const segments = selectedProducts.flatMap((p) => {
+  // 루틴 식품 세그먼트
+  const routinePct = routineAmount > 0 ? (routineAmount / scaleMax) * 100 : 0
+
+  // 건기식 제품별 세그먼트
+  const suppSegments = selectedProducts.flatMap((p) => {
     const n = p.nutrients.find((pn) => pn.name === nutrient.name && pn.unit === nutrient.unit)
     if (!n || n.amount === 0) return []
     const amount = nutrient.name === "비타민D" && nutrient.unit === "IU" ? n.amount / 40 : n.amount
@@ -116,25 +122,38 @@ function MobileNutrientBar({
         <span className={`text-[11px] font-extrabold ${isExceeded ? "text-rose-600" : "text-stone-700"}`}>
           {nutrient.name}
         </span>
-        <span className={`text-[10px] font-bold ${isExceeded ? "text-rose-600" : "text-stone-500"}`}>
-          {displayAmount}{ulUnit}
-          <span className="text-stone-300 font-medium"> / 상한 {ul}</span>
-        </span>
+        <div className="flex items-center gap-1">
+          {routineAmount > 0 && (
+            <span className="text-[9px] font-bold text-blue-400 bg-blue-50 px-1.5 py-0.5 rounded-md">
+              🍼 {parseFloat(routineAmount.toFixed(2))}{ulUnit}
+            </span>
+          )}
+          <span className={`text-[10px] font-bold ${isExceeded ? "text-rose-600" : "text-stone-500"}`}>
+            {displayAmount}{ulUnit}
+            <span className="text-stone-300 font-medium"> / 상한 {ul}</span>
+          </span>
+        </div>
       </div>
 
       <div className="relative w-full h-2.5 bg-stone-100 rounded-full">
-        {/* 제품별 세그먼트 */}
+        {/* 세그먼트: [루틴 식품 (파랑)] + [건기식 제품들 (각 색상)] */}
         <div className="absolute inset-0 flex rounded-full overflow-hidden">
-          {segments.map((seg) => (
+          {routinePct > 0 && (
+            <div
+              style={{ width: `${routinePct}%`, backgroundColor: ROUTINE_COLOR }}
+              className="h-full border-r border-white/40 shrink-0"
+            />
+          )}
+          {suppSegments.map((seg) => (
             <div
               key={seg.id}
               style={{ width: `${seg.widthPct}%`, backgroundColor: colorMap.get(seg.id) ?? "#94a3b8" }}
-              className="h-full border-r border-white/30 last:border-0"
+              className="h-full border-r border-white/30 last:border-0 shrink-0"
             />
           ))}
         </div>
 
-        {/* 초과 시 빨간 사선 패턴 오버레이 */}
+        {/* 초과 시 빨간 사선 오버레이 */}
         {isExceeded && (
           <div
             style={{ left: `${limitPct}%`, width: `${100 - limitPct}%` }}
@@ -287,8 +306,14 @@ export default function DashboardClient({
 }: {
   initialProducts: Product[]
 }) {
-  const [selectedProducts, setSelectedProducts] = useState<Product[]>([])
-  const [monthsOld, setMonthsOld] = useState(12)
+  const {
+    gender, setGender,
+    selectedProducts, toggleProduct: storeToggle,
+    selectedRoutineFoods,
+    monthsOld, setMonthsOld,
+  } = useAppStore()
+
+  const [monthInput, setMonthInput] = useState(String(monthsOld))
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set())
 
   const [searchQuery, setSearchQuery] = useState("")
@@ -297,23 +322,10 @@ export default function DashboardClient({
   const [displayedProducts, setDisplayedProducts] = useState<Product[]>(initialProducts)
   const [isSearching, setIsSearching] = useState(false)
 
-  // ── LocalStorage 복원 ─────────────────────────────────────────────────────
+  // store 하이드레이션 후 monthInput 동기화
   useEffect(() => {
-    try {
-      const savedMonths = localStorage.getItem(LS_MONTHS)
-      if (savedMonths !== null) setMonthsOld(Number(savedMonths))
-      const savedProducts = localStorage.getItem(LS_PRODUCTS)
-      if (savedProducts !== null) setSelectedProducts(JSON.parse(savedProducts))
-    } catch {}
-  }, [])
-
-  useEffect(() => {
-    try { localStorage.setItem(LS_MONTHS, String(monthsOld)) } catch {}
-  }, [monthsOld])
-
-  useEffect(() => {
-    try { localStorage.setItem(LS_PRODUCTS, JSON.stringify(selectedProducts)) } catch {}
-  }, [selectedProducts])
+    setMonthInput(String(monthsOld))
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── 검색어 디바운스 (300ms) ───────────────────────────────────────────────
   useEffect(() => {
@@ -352,13 +364,7 @@ export default function DashboardClient({
   }, [debouncedQuery, activeNutrient, initialProducts])
 
   // ── 토글 ─────────────────────────────────────────────────────────────────
-  const toggleProduct = (product: Product) => {
-    setSelectedProducts((prev) =>
-      prev.some((p) => p.id === product.id)
-        ? prev.filter((p) => p.id !== product.id)
-        : [...prev, product]
-    )
-  }
+  const toggleProduct = (product: Product) => storeToggle(product)
 
   const toggleExpand = (id: number) => {
     setExpandedIds((prev) => {
@@ -372,25 +378,51 @@ export default function DashboardClient({
   const isSelected = (id: number) => selectedProducts.some((p) => p.id === id)
 
   // ── 파생 상태 ─────────────────────────────────────────────────────────────
-  const aggregated = useMemo(() => aggregateNutrients(selectedProducts), [selectedProducts])
+  const aggregated  = useMemo(() => aggregateNutrients(selectedProducts), [selectedProducts])
   const upperLimits = getUpperLimits(monthsOld)
-  const ageGroup = getAgeGroup(monthsOld)
+  const ageGroup    = getAgeGroup(monthsOld)
 
   const colorMap = useMemo(
     () => new Map(selectedProducts.map((p, i) => [p.id, PRODUCT_COLORS[i % PRODUCT_COLORS.length]])),
     [selectedProducts]
   )
 
-  const exceededCount = aggregated.filter((n) => {
-    const { ul, compareAmount } = getULComparison(n, upperLimits)
-    return ul !== undefined && compareAmount > ul
-  }).length
+  // 루틴 식품 영양소 합산 { "영양소||단위": 총량 }
+  const routineContrib = useMemo(
+    () => computeRoutineContribution(selectedRoutineFoods),
+    [selectedRoutineFoods]
+  )
 
-  // 선택된 제품 중 상한선이 있는 영양소만 차트에 표시
-  const chartNutrients = aggregated.filter((n) => {
-    const { ul, compareAmount } = getULComparison(n, upperLimits)
-    return ul !== undefined && compareAmount > 0
-  })
+  // 차트에 표시할 영양소: 건기식 + 루틴 식품의 합집합 (UL 있는 것만)
+  const chartNutrients = useMemo(() => {
+    const seen = new Set<string>()
+    const items: { nutrient: AggregatedNutrient; ul: number; suppAmount: number; routineAmount: number; totalAmount: number }[] = []
+
+    // 건기식 영양소
+    for (const n of aggregated) {
+      const { ul, compareAmount: suppAmt } = getULComparison(n, upperLimits)
+      if (ul === undefined) continue
+      const canonicalKey = n.name === "비타민D" && n.unit === "IU" ? "비타민D||μg" : `${n.name}||${n.unit}`
+      const routineAmt   = routineContrib[canonicalKey] ?? 0
+      const totalAmt     = suppAmt + routineAmt
+      if (totalAmt === 0) continue
+      items.push({ nutrient: n, ul, suppAmount: suppAmt, routineAmount: routineAmt, totalAmount: totalAmt })
+      seen.add(canonicalKey)
+    }
+
+    // 루틴 식품 전용 영양소 (건기식에 없는 것)
+    for (const [key, routineAmt] of Object.entries(routineContrib)) {
+      if (seen.has(key) || routineAmt === 0) continue
+      const ul = upperLimits[key]
+      if (ul === undefined) continue
+      const [name, unit] = key.split("||")
+      items.push({ nutrient: { name, amount: 0, unit }, ul, suppAmount: 0, routineAmount: routineAmt, totalAmount: routineAmt })
+    }
+
+    return items
+  }, [aggregated, routineContrib, upperLimits])
+
+  const exceededCount = chartNutrients.filter((c) => c.totalAmount > c.ul).length
 
   return (
     <div className="flex justify-center bg-gray-100 h-screen">
@@ -421,24 +453,68 @@ export default function DashboardClient({
               </div>
             </div>
 
-            {/* +/- 월령 선택기 */}
-            <div className="flex items-center gap-2 bg-[#FFFBF7] border border-stone-200 rounded-xl px-2 py-1">
+            <div className="flex items-center gap-2">
+            {/* 성별 토글 */}
+            <div className="flex items-center bg-stone-100 rounded-xl p-0.5">
               <button
-                onClick={() => setMonthsOld(Math.max(0, monthsOld - 1))}
+                onClick={() => setGender("M")}
+                className={`px-2.5 py-1 rounded-[10px] text-xs font-extrabold transition-colors ${
+                  gender === "M" ? "bg-blue-500 text-white shadow-sm" : "text-stone-400"
+                }`}
+              >
+                남
+              </button>
+              <button
+                onClick={() => setGender("F")}
+                className={`px-2.5 py-1 rounded-[10px] text-xs font-extrabold transition-colors ${
+                  gender === "F" ? "bg-rose-400 text-white shadow-sm" : "text-stone-400"
+                }`}
+              >
+                여
+              </button>
+            </div>
+
+            {/* +/- 월령 선택기 */}
+            <div className="flex items-center gap-1 bg-[#FFFBF7] border border-stone-200 rounded-xl px-2 py-1">
+              <button
+                onClick={() => {
+                  const next = Math.max(0, monthsOld - 1)
+                  setMonthsOld(next)
+                  setMonthInput(String(next))
+                }}
                 className="w-6 h-6 flex items-center justify-center text-stone-400 font-bold text-lg leading-none"
               >
                 -
               </button>
-              <span className="text-sm font-extrabold text-orange-600 w-10 text-center">
-                {monthsOld}개월
-              </span>
+              <div className="flex items-center">
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  value={monthInput}
+                  onChange={(e) => setMonthInput(e.target.value)}
+                  onBlur={() => {
+                    const v = parseInt(monthInput)
+                    const clamped = isNaN(v) ? monthsOld : Math.min(36, Math.max(0, v))
+                    setMonthsOld(clamped)
+                    setMonthInput(String(clamped))
+                  }}
+                  onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur() }}
+                  className="w-7 text-sm font-extrabold text-orange-600 text-center bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+                <span className="text-sm font-extrabold text-orange-600">개월</span>
+              </div>
               <button
-                onClick={() => setMonthsOld(Math.min(36, monthsOld + 1))}
+                onClick={() => {
+                  const next = Math.min(36, monthsOld + 1)
+                  setMonthsOld(next)
+                  setMonthInput(String(next))
+                }}
                 className="w-6 h-6 flex items-center justify-center text-stone-400 font-bold text-lg leading-none"
               >
                 +
               </button>
             </div>
+          </div>
           </div>
 
           {/* 선택 제품 칩 (가로 스크롤) */}
@@ -502,21 +578,29 @@ export default function DashboardClient({
                 제품을 담으면 영양소 현황이 표시됩니다
               </div>
             ) : (
-              <div className="flex flex-col gap-3">
-                {chartNutrients.map((n, i) => {
-                  const { ul, compareAmount } = getULComparison(n, upperLimits)
-                  return (
+              <>
+                {selectedRoutineFoods.length > 0 && (
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: "#60a5fa" }} />
+                    <span className="text-[9px] font-bold text-blue-400">루틴 식품</span>
+                    <div className="w-2.5 h-2.5 rounded-sm bg-orange-400" />
+                    <span className="text-[9px] font-bold text-stone-400">건기식</span>
+                  </div>
+                )}
+                <div className="flex flex-col gap-3">
+                  {chartNutrients.map((item, i) => (
                     <MobileNutrientBar
                       key={i}
-                      nutrient={n}
-                      ul={ul!}
-                      compareAmount={compareAmount}
+                      nutrient={item.nutrient}
+                      ul={item.ul}
+                      compareAmount={item.totalAmount}
+                      routineAmount={item.routineAmount}
                       selectedProducts={selectedProducts}
                       colorMap={colorMap}
                     />
-                  )
-                })}
-              </div>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         </section>

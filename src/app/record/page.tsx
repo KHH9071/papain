@@ -11,6 +11,7 @@ import {
   AGE_GROUP_LABEL,
   KDRI_RI,
 } from "@/lib/kdri_data"
+import { computeRoutineContribution } from "@/lib/routine_foods"
 import type { Product } from "@/lib/types"
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
@@ -453,6 +454,7 @@ export default function RecordPage() {
   const {
     gender: storeGender, setGender: setStoreGender,
     selectedProducts,
+    selectedRoutineFoods,
     growthRecords, addGrowthRecord, removeGrowthRecord,
   } = useAppStore()
 
@@ -527,17 +529,20 @@ export default function RecordPage() {
   const latestWRow   = latestRecord ? weightData.find((d) => d.month === latestRecord.monthsOld) : null
 
   // ── 영양 리포트 데이터 ────────────────────────────────────────────────────
-  const aggregated  = useMemo(() => aggregateNutrients(selectedProducts), [selectedProducts])
-  const riData      = getRecommendedIntakes(localMonths)
-  const ulData      = getUpperLimits(localMonths)
-  const ageGroup    = getAgeGroup(localMonths)
+  const aggregated     = useMemo(() => aggregateNutrients(selectedProducts), [selectedProducts])
+  const routineContrib = useMemo(() => computeRoutineContribution(selectedRoutineFoods), [selectedRoutineFoods])
+  const riData         = getRecommendedIntakes(localMonths)
+  const ulData         = getUpperLimits(localMonths)
+  const ageGroup       = getAgeGroup(localMonths)
 
   const riRows: RIRow[] = useMemo(() => {
     return Object.entries(riData).map(([key, entry]) => {
       const [name, unit] = key.split("||")
-      const current = getCurrentAmount(name, unit, aggregated)
-      const pct     = entry.ri > 0 ? (current / entry.ri) * 100 : 0
-      const ulVal   = ulData[key]
+      const suppAmount   = getCurrentAmount(name, unit, aggregated)
+      const routineAmt   = routineContrib[key] ?? 0
+      const current      = parseFloat((suppAmount + routineAmt).toFixed(4))
+      const pct          = entry.ri > 0 ? (current / entry.ri) * 100 : 0
+      const ulVal        = ulData[key]
       return {
         key, name, unit,
         ri: entry.ri, current,
@@ -548,7 +553,7 @@ export default function RecordPage() {
         foodSource:  entry.foodSource,
       }
     })
-  }, [riData, ulData, aggregated])
+  }, [riData, ulData, aggregated, routineContrib])
 
   const exceededRows  = riRows.filter((r) => r.isExceeded)
 

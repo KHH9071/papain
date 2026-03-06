@@ -1,0 +1,134 @@
+/**
+ * routine_foods.ts — 루틴 식품 Mock DB
+ * (분유 / 우유 / 치즈 등 매일 먹이는 기본 식품)
+ * 영양소 키: "영양소명||단위" — KDRI_RI 키와 동일 포맷
+ * nutrients 값 단위: ml 기반 식품 → per 100ml, 슬라이스 기반 → per slice
+ */
+
+export type RoutineFood = {
+  id: string
+  name: string
+  brand: string
+  category: "formula" | "milk" | "cheese"
+  baseUnit: "ml" | "slice"
+  defaultAmount: number  // 기본 하루 섭취량 (ml 또는 슬라이스 수)
+  nutrients: Record<string, number>
+}
+
+export type SelectedRoutineFood = {
+  food: RoutineFood
+  amountPerDay: number
+}
+
+export const ROUTINE_FOODS: RoutineFood[] = [
+  {
+    id: "aptamil-1",
+    name: "압타밀 1단계",
+    brand: "Aptamil",
+    category: "formula",
+    baseUnit: "ml",
+    defaultAmount: 800,
+    nutrients: {
+      "칼슘||mg":       56,
+      "비타민D||μg":    1.25,
+      "철||mg":         1.2,
+      "아연||mg":       0.5,
+      "비타민C||mg":    8,
+      "비타민A||μg RE": 60,
+    },
+  },
+  {
+    id: "imperial-xo-3",
+    name: "임페리얼 XO 3단계",
+    brand: "남양유업",
+    category: "formula",
+    baseUnit: "ml",
+    defaultAmount: 600,
+    nutrients: {
+      "칼슘||mg":       100,
+      "비타민D||μg":    1.6,
+      "철||mg":         1.5,
+      "아연||mg":       0.8,
+      "비타민C||mg":    6,
+      "비타민A||μg RE": 55,
+    },
+  },
+  {
+    id: "absolute-2",
+    name: "앱솔루트 명작 2단계",
+    brand: "매일유업",
+    category: "formula",
+    baseUnit: "ml",
+    defaultAmount: 700,
+    nutrients: {
+      "칼슘||mg":       75,
+      "비타민D||μg":    1.1,
+      "철||mg":         1.0,
+      "아연||mg":       0.5,
+      "비타민C||mg":    5,
+      "비타민A||μg RE": 50,
+    },
+  },
+  {
+    id: "seoul-milk",
+    name: "서울우유",
+    brand: "서울우유협동조합",
+    category: "milk",
+    baseUnit: "ml",
+    defaultAmount: 400,
+    nutrients: {
+      "칼슘||mg":    110,
+      "비타민D||μg": 0.5,
+    },
+  },
+  {
+    id: "sanghwa-milk",
+    name: "상하 유기농 우유",
+    brand: "매일유업",
+    category: "milk",
+    baseUnit: "ml",
+    defaultAmount: 400,
+    nutrients: {
+      "칼슘||mg":    115,
+      "비타민D||μg": 0.4,
+    },
+  },
+  {
+    id: "baby-cheese",
+    name: "아기치즈",
+    brand: "서울유업",
+    category: "cheese",
+    baseUnit: "slice",
+    defaultAmount: 2,
+    nutrients: {
+      "칼슘||mg":    105,  // per slice
+      "비타민D||μg": 0.3,  // per slice
+    },
+  },
+]
+
+/** 루틴 식품 영양소 합산 → { "영양소||단위": 총량 } */
+export function computeRoutineContribution(
+  selected: SelectedRoutineFood[]
+): Record<string, number> {
+  const result: Record<string, number> = {}
+  for (const { food, amountPerDay } of selected) {
+    const multiplier = food.baseUnit === "ml" ? amountPerDay / 100 : amountPerDay
+    for (const [key, valuePer100] of Object.entries(food.nutrients)) {
+      result[key] = parseFloat(((result[key] ?? 0) + valuePer100 * multiplier).toFixed(4))
+    }
+  }
+  return result
+}
+
+export const CATEGORY_ICON: Record<RoutineFood["category"], string> = {
+  formula: "🍼",
+  milk:    "🥛",
+  cheese:  "🧀",
+}
+
+export const CATEGORY_LABEL: Record<RoutineFood["category"], string> = {
+  formula: "분유",
+  milk:    "우유",
+  cheese:  "치즈",
+}

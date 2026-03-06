@@ -4,6 +4,8 @@ import { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase/client"
 import { useAppStore } from "@/lib/store"
 import type { Product } from "@/lib/types"
+import { ROUTINE_FOODS, CATEGORY_ICON, CATEGORY_LABEL } from "@/lib/routine_foods"
+import type { RoutineFood } from "@/lib/routine_foods"
 
 // ─── 상수 ─────────────────────────────────────────────────────────────────────
 const RECOMMENDED_NUTRIENTS = [
@@ -142,14 +144,74 @@ function MobileProductCard({
   )
 }
 
+// ─── 루틴 식품 카드 ───────────────────────────────────────────────────────────
+function RoutineFoodCard({
+  food,
+  selectedAmount,
+  onSet,
+  onRemove,
+}: {
+  food: RoutineFood
+  selectedAmount: number | null
+  onSet: (food: RoutineFood, amount: number) => void
+  onRemove: (id: string) => void
+}) {
+  const isSelected = selectedAmount !== null
+  const step       = food.baseUnit === "ml" ? 50 : 1
+  const minAmount  = food.baseUnit === "ml" ? 50 : 1
+  const amount     = selectedAmount ?? food.defaultAmount
+  const unitLabel  = food.baseUnit === "ml" ? "ml" : "장"
+
+  return (
+    <div className={`bg-white rounded-2xl border-2 p-3 flex items-center gap-3 transition-all ${isSelected ? "border-blue-400 shadow-sm shadow-blue-100" : "border-stone-100"}`}>
+      <span className="text-2xl shrink-0">{CATEGORY_ICON[food.category]}</span>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-extrabold text-stone-800 leading-tight">{food.name}</p>
+        <p className="text-[10px] font-bold text-stone-400">{food.brand} · {CATEGORY_LABEL[food.category]}</p>
+        {isSelected && (
+          <p className="text-[10px] font-bold text-blue-500 mt-0.5">하루 {amount}{unitLabel}</p>
+        )}
+      </div>
+
+      {isSelected ? (
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            onClick={() => onSet(food, Math.max(minAmount, amount - step))}
+            className="w-7 h-7 flex items-center justify-center rounded-lg bg-stone-100 text-stone-600 font-bold text-base active:bg-stone-200"
+          >−</button>
+          <span className="text-sm font-extrabold text-blue-600 min-w-[44px] text-center">{amount}{unitLabel}</span>
+          <button
+            onClick={() => onSet(food, amount + step)}
+            className="w-7 h-7 flex items-center justify-center rounded-lg bg-stone-100 text-stone-600 font-bold text-base active:bg-stone-200"
+          >+</button>
+          <button
+            onClick={() => onRemove(food.id)}
+            className="w-7 h-7 flex items-center justify-center rounded-lg bg-rose-50 text-rose-400 ml-1 active:bg-rose-100"
+          >
+            <svg width={12} height={12} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+      ) : (
+        <button
+          onClick={() => onSet(food, food.defaultAmount)}
+          className="shrink-0 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-xl text-xs font-extrabold border border-blue-200 active:bg-blue-100"
+        >
+          + 등록
+        </button>
+      )}
+    </div>
+  )
+}
+
 // ─── 메인 컴포넌트 ────────────────────────────────────────────────────────────
 export default function SearchClient({
   initialProducts,
 }: {
   initialProducts: Product[]
 }) {
-  const { selectedProducts, toggleProduct } = useAppStore()
+  const { selectedProducts, toggleProduct, selectedRoutineFoods, setRoutineFood, removeRoutineFood } = useAppStore()
 
+  const [showRoutine, setShowRoutine] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [debouncedQuery, setDebouncedQuery] = useState("")
   const [activeNutrient, setActiveNutrient] = useState<string | null>(null)
@@ -273,6 +335,73 @@ export default function SearchClient({
             </button>
           ))}
         </div>
+      </div>
+
+      {/* 루틴 식품 등록 섹션 */}
+      <div className="px-5 pt-3 pb-2">
+        <button
+          onClick={() => setShowRoutine((v) => !v)}
+          className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-all text-left ${
+            showRoutine
+              ? "bg-blue-50 border-blue-200"
+              : "bg-white border-stone-200 hover:border-blue-200 hover:bg-blue-50/50"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-base">🍼</span>
+            <div>
+              <p className="text-xs font-extrabold text-stone-800">루틴 식품 등록하기 (분유/우유)</p>
+              <p className="text-[10px] font-bold text-stone-400">
+                {selectedRoutineFoods.length > 0
+                  ? `${selectedRoutineFoods.length}개 등록됨 · 영양소 합산에 반영됩니다`
+                  : "매일 먹이는 분유/우유를 등록하면 더 정확해져요"}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {selectedRoutineFoods.length > 0 && (
+              <span className="text-[10px] font-extrabold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
+                {selectedRoutineFoods.length}개
+              </span>
+            )}
+            <svg
+              width={16} height={16}
+              className={`transition-transform text-stone-400 ${showRoutine ? "rotate-180" : ""}`}
+              fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </button>
+
+        {showRoutine && (
+          <div className="mt-2 flex flex-col gap-2">
+            {(["formula", "milk", "cheese"] as const).map((cat) => {
+              const foods = ROUTINE_FOODS.filter((f) => f.category === cat)
+              return (
+                <div key={cat}>
+                  <p className="text-[10px] font-extrabold text-stone-400 px-1 mb-1.5 mt-1">
+                    {CATEGORY_ICON[cat]} {CATEGORY_LABEL[cat]}
+                  </p>
+                  <div className="flex flex-col gap-2">
+                    {foods.map((food) => {
+                      const sel = selectedRoutineFoods.find((f) => f.food.id === food.id)
+                      return (
+                        <RoutineFoodCard
+                          key={food.id}
+                          food={food}
+                          selectedAmount={sel ? sel.amountPerDay : null}
+                          onSet={setRoutineFood}
+                          onRemove={removeRoutineFood}
+                        />
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {/* 제품 목록 */}
