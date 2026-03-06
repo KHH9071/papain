@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts"
+import { LineChart, Line, ComposedChart, ReferenceLine, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts"
 import { useAppStore } from "@/lib/store"
 import { getHeightData, getWeightData } from "@/lib/growth_data"
 import {
@@ -9,6 +9,7 @@ import {
   getRecommendedIntakes,
   getAgeGroup,
   AGE_GROUP_LABEL,
+  KDRI_RI,
 } from "@/lib/kdri_data"
 import type { Product } from "@/lib/types"
 
@@ -104,110 +105,166 @@ const FOOD_BRIDGE: Record<string, { name: string; amount: string; icon: string }
   ],
 }
 
-// ─── 영양소 성장 추이 목 데이터 ────────────────────────────────────────────────
-type TrendPoint = { age: number; intake: number; ri: number; isCurrent?: boolean; isFuture?: boolean }
-const TREND_DATA_NUTRIENTS: Record<string, { data: TrendPoint[]; unit: string; name: string }> = {
-  calcium: {
-    name: "칼슘", unit: "mg",
-    data: [
-      { age: 12, intake: 200, ri: 500 },
-      { age: 18, intake: 280, ri: 500 },
-      { age: 24, intake: 420, ri: 500 },
-      { age: 26, intake: 420, ri: 500, isCurrent: true },
-      { age: 30, intake: 420, ri: 600, isFuture: true },
-      { age: 36, intake: 420, ri: 600, isFuture: true },
-    ],
-  },
-  vitD: {
-    name: "비타민D", unit: "μg",
-    data: [
-      { age: 12, intake: 5, ri: 5 },
-      { age: 18, intake: 5, ri: 5 },
-      { age: 24, intake: 5, ri: 5 },
-      { age: 26, intake: 5, ri: 5, isCurrent: true },
-      { age: 30, intake: 5, ri: 10, isFuture: true },
-      { age: 36, intake: 5, ri: 10, isFuture: true },
-    ],
-  },
-  iron: {
-    name: "철분", unit: "mg",
-    data: [
-      { age: 12, intake: 4, ri: 6 },
-      { age: 18, intake: 5, ri: 6 },
-      { age: 24, intake: 7, ri: 6 },
-      { age: 26, intake: 7, ri: 6, isCurrent: true },
-      { age: 30, intake: 7, ri: 8, isFuture: true },
-      { age: 36, intake: 7, ri: 8, isFuture: true },
-    ],
-  },
+// ─── 영양소 추이 데이터 빌더 (실제 kdri_data 기반) ───────────────────────────
+type TrendPoint = { month: number; ri: number | null; intake: number }
+
+function buildNutrientTrendData(nutrientKey: string, currentIntake: number): TrendPoint[] {
+  return Array.from({ length: 37 }, (_, month) => {
+    const group = getAgeGroup(month)
+    const riEntry = KDRI_RI[group]?.[nutrientKey]
+    return {
+      month,
+      ri: riEntry ? riEntry.ri : null,
+      intake: currentIntake,
+    }
+  })
 }
 
-// ─── SVG 영양 추이 차트 ────────────────────────────────────────────────────────
-function TrendChart({ data, name, unit }: { data: TrendPoint[]; name: string; unit: string }) {
-  const W = 320, H = 120, PX = 20, PY = 16
-  const maxRI     = Math.max(...data.map((d) => d.ri))
-  const maxIntake = Math.max(...data.map((d) => d.intake))
-  const chartMaxY = Math.max(maxRI, maxIntake) * 1.4
+// ─── 영양소 추이 차트 (recharts ComposedChart) ───────────────────────────────
+function NutrientTrendChart({
+  nutrientKey, name, unit, currentIntake, currentMonths,
+}: {
+  nutrientKey: string; name: string; unit: string
+  currentIntake: number; currentMonths: number
+}) {
+  const data = useMemo(
+    () => buildNutrientTrendData(nutrientKey, currentIntake),
+    [nutrientKey, currentIntake],
+  )
 
-  const getX = (i: number) => PX + (i * ((W - PX * 2) / (data.length - 1)))
-  const getY = (v: number) => H - PY - ((v / chartMaxY) * (H - PY * 2))
+  // 현재 월령의 RI
+  const currentRI = KDRI_RI[getAgeGroup(currentMonths)]?.[nutrientKey]?.ri ?? null
+  // 36개월 시점의 RI
+  const futureRI  = KDRI_RI["12-35"]?.[nutrientKey]?.ri ?? null
+  const hasFutureGap = futureRI !== null && currentIntake < futureRI
 
-  const intakePath = data.map((d, i) => `${i === 0 ? "M" : "L"} ${getX(i).toFixed(1)} ${getY(d.intake).toFixed(1)}`).join(" ")
-  const riPath     = data.map((d, i) => `${i === 0 ? "M" : "L"} ${getX(i).toFixed(1)} ${getY(d.ri).toFixed(1)}`).join(" ")
-  const currentIdx = data.findIndex((d) => d.isCurrent)
-  const currentX   = getX(currentIdx)
+  const displayCur = parseFloat(currentIntake.toFixed(2))
 
-  const hasFutureGap = data[data.length - 1].intake < data[data.length - 1].ri
+  // Y축 범위: ri 최대값과 intake 중 큰 값 기준으로 여유 확보
+  const maxRI = Math.max(...data.filter((d) => d.ri !== null).map((d) => d.ri as number))
+  const yMax  = Math.max(maxRI, currentIntake) * 1.35
 
   return (
     <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 mb-4">
-      <div className="flex justify-between items-center mb-3">
+      {/* 헤더 */}
+      <div className="flex justify-between items-center mb-1">
         <h3 className="font-extrabold text-stone-800 text-sm">
-          {name} <span className="text-stone-400 text-xs font-medium ml-1">추세 및 예측</span>
+          {name}
+          <span className="text-stone-400 text-xs font-medium ml-1.5">성장 추이</span>
         </h3>
         <span className="text-[10px] font-bold text-stone-400 bg-stone-50 px-2 py-1 rounded-md">단위: {unit}</span>
       </div>
 
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto overflow-visible">
-        {/* 배경 영역 */}
-        <rect x={PX} y={0} width={W - PX * 2} height={getY(chartMaxY * 0.78)} fill="#fff1f2" opacity="0.45" />
-        <rect x={PX} y={getY(chartMaxY * 0.78)} width={W - PX * 2} height={H - PY - getY(chartMaxY * 0.78)} fill="#f0fdf4" opacity="0.5" />
+      {/* 범례 */}
+      <div className="flex items-center gap-4 mb-2">
+        <div className="flex items-center gap-1.5">
+          <svg width={22} height={8}><line x1="0" y1="4" x2="22" y2="4" stroke="#10b981" strokeWidth="2" strokeDasharray="5 3" /></svg>
+          <span className="text-[10px] font-bold text-emerald-600">권장량 (RI)</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <svg width={22} height={8}><line x1="0" y1="4" x2="22" y2="4" stroke="#f97316" strokeWidth="2.5" /></svg>
+          <span className="text-[10px] font-bold text-orange-500">현재 섭취량 유지</span>
+        </div>
+      </div>
 
-        {/* 현재 시점 구분선 */}
-        <line x1={currentX} y1={0} x2={currentX} y2={H - PY} stroke="#e7e5e4" strokeWidth="1.5" strokeDasharray="4 3" />
-        <text x={currentX} y={H - PY + 12} textAnchor="middle" fontSize="9" fill="#f97316" fontWeight="bold">현재</text>
+      {/* 차트 */}
+      <div className="overflow-x-auto -mx-2 px-1">
+        <ComposedChart
+          width={340} height={160} data={data}
+          margin={{ top: 8, right: 12, left: -18, bottom: 4 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+          <XAxis
+            dataKey="month"
+            type="number"
+            domain={[0, 36]}
+            ticks={[0, 6, 12, 18, 24, 30, 36]}
+            tick={{ fontSize: 9, fill: "#9ca3af", fontWeight: 600 }}
+            tickLine={false}
+            axisLine={{ stroke: "#e5e7eb" }}
+            label={{ value: "월령(개월)", position: "insideBottomRight", offset: -4, fontSize: 9, fill: "#9ca3af" }}
+            height={28}
+          />
+          <YAxis
+            domain={[0, yMax]}
+            tick={{ fontSize: 9, fill: "#9ca3af", fontWeight: 600 }}
+            tickLine={false}
+            axisLine={false}
+            width={38}
+          />
+          <Tooltip
+            content={({ active, payload, label }) => {
+              if (!active || !payload?.length) return null
+              const ri  = payload.find((p) => p.dataKey === "ri")?.value
+              const intake = payload.find((p) => p.dataKey === "intake")?.value
+              return (
+                <div className="bg-white border border-stone-200 rounded-xl shadow-lg px-3 py-2 text-xs min-w-[110px]">
+                  <p className="font-extrabold text-stone-600 mb-1">{label}개월</p>
+                  {ri != null && <p className="font-bold text-emerald-600">권장량: {ri}{unit}</p>}
+                  <p className="font-bold text-orange-500">섭취량: {typeof intake === "number" ? parseFloat(intake.toFixed(2)) : "-"}{unit}</p>
+                </div>
+              )
+            }}
+          />
 
-        {/* 권장량 선 (점선 초록) */}
-        <path d={riPath} fill="none" stroke="#10b981" strokeWidth="1.8" strokeDasharray="6 4" opacity="0.7" />
+          {/* 현재 월령 구분선 */}
+          <ReferenceLine
+            x={currentMonths}
+            stroke="#f97316"
+            strokeDasharray="4 3"
+            strokeWidth={1.5}
+            label={{ value: "현재", position: "top", fontSize: 9, fill: "#f97316", fontWeight: "bold" }}
+          />
 
-        {/* 섭취량 선 (실선 오렌지) */}
-        <path d={intakePath} fill="none" stroke="#f97316" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          {/* RI 선: 계단식 점선 (실제 kdri_data) */}
+          <Line
+            dataKey="ri"
+            name="권장량"
+            type="stepAfter"
+            stroke="#10b981"
+            strokeWidth={2}
+            strokeDasharray="6 4"
+            dot={false}
+            activeDot={{ r: 4, fill: "#10b981", stroke: "#fff", strokeWidth: 1.5 }}
+            connectNulls={false}
+            isAnimationActive={false}
+          />
 
-        {/* 데이터 포인트 */}
-        {data.map((d, i) => (
-          <g key={i}>
-            <circle cx={getX(i)} cy={getY(d.intake)} r="3.5" fill={d.isFuture ? "#fed7aa" : "#f97316"} stroke="#fff" strokeWidth="1.5" />
-            <text x={getX(i)} y={H} textAnchor="middle" fontSize="9" fill={d.isCurrent ? "#f97316" : "#a8a29e"} fontWeight={d.isCurrent ? "bold" : "normal"}>
-              {d.age}m
-            </text>
-            {d.isFuture && d.intake < d.ri && (
-              <line x1={getX(i)} y1={getY(d.intake) - 5} x2={getX(i)} y2={getY(d.ri) + 5} stroke="#ef4444" strokeWidth="1.5" strokeDasharray="2 2" />
-            )}
-          </g>
-        ))}
+          {/* 섭취량 선: 수평 실선 (현재 selectedProducts 합산 고정값) */}
+          <Line
+            dataKey="intake"
+            name="섭취량"
+            type="linear"
+            stroke="#f97316"
+            strokeWidth={2.5}
+            dot={false}
+            activeDot={false}
+            isAnimationActive={false}
+          />
+        </ComposedChart>
+      </div>
 
-        {/* 범례 */}
-        <text x={W - PX} y={getY(data[data.length - 1].ri) - 6} textAnchor="end" fontSize="9" fill="#10b981" fontWeight="bold">권장량</text>
-        <text x={W - PX} y={getY(data[data.length - 1].intake) + 13} textAnchor="end" fontSize="9" fill="#f97316" fontWeight="bold">유지시 예상</text>
-      </svg>
+      {/* 현재 상태 요약 */}
+      <div className="mt-1 flex items-center justify-between px-1">
+        <span className="text-[10px] font-bold text-stone-400">
+          현재 섭취: <span className="text-orange-500">{displayCur}{unit}</span>
+          {currentRI !== null && (
+            <span className="ml-1">/ 권장 <span className="text-emerald-600">{currentRI}{unit}</span></span>
+          )}
+        </span>
+        {currentRI !== null && currentIntake >= currentRI && (
+          <span className="text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">✓ 현재 충족</span>
+        )}
+      </div>
 
+      {/* 미래 Gap 경고 */}
       {hasFutureGap && (
         <div className="mt-2 bg-orange-50 border border-orange-100 p-2.5 rounded-xl flex items-start gap-2">
           <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5">
             <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
           </svg>
           <p className="text-[11px] text-stone-600 leading-snug">
-            현재 패턴 유지 시 <strong className="text-orange-600">{data[data.length - 1].age}개월</strong>부터 {name} 권장량이 부족해집니다.
+            12개월 이후 {name} 권장량(<strong className="text-emerald-600">{futureRI}{unit}</strong>) 대비 현재 섭취량이 부족합니다. 건기식 조합 조정을 검토해보세요.
           </p>
         </div>
       )}
@@ -830,9 +887,16 @@ export default function RecordPage() {
                     현재 건기식 조합을 유지할 경우, 아이 성장에 따른 권장량(RI) 변화 대비 <strong>부족해지는 시점</strong>을 예측합니다.
                   </p>
                 </div>
-                <TrendChart {...TREND_DATA_NUTRIENTS.calcium} />
-                <TrendChart {...TREND_DATA_NUTRIENTS.vitD} />
-                <TrendChart {...TREND_DATA_NUTRIENTS.iron} />
+                {riRows.map((row) => (
+                  <NutrientTrendChart
+                    key={row.key}
+                    nutrientKey={row.key}
+                    name={row.name}
+                    unit={row.unit}
+                    currentIntake={row.current}
+                    currentMonths={localMonths}
+                  />
+                ))}
               </>
             )}
 
