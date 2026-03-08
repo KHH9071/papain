@@ -1,18 +1,23 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import Link from "next/link"
 import { LineChart, Line, ComposedChart, ReferenceLine, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts"
-import { useAppStore } from "@/lib/store"
-import { getHeightData, getWeightData } from "@/lib/growth_data"
+import { useAppStore, type GrowthRecord } from "@/lib/store"
+import { getHeightData, getWeightData, findNearestGrowthRow } from "@/lib/growth_data"
 import {
   getUpperLimits,
   getRecommendedIntakes,
   getAgeGroup,
   AGE_GROUP_LABEL,
   KDRI_RI,
+  KDRI_UL,
+  MIN_MONTHS,
+  MAX_MONTHS,
+  NEXT_AGE_THRESHOLD,
 } from "@/lib/kdri_data"
-import { computeRoutineContribution } from "@/lib/routine_foods"
 import type { Product } from "@/lib/types"
+import { getMultiplier } from "@/lib/nutrition_utils"
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
 type PageTab  = "growth" | "nutrition"
@@ -32,11 +37,13 @@ type RIRow = {
 function aggregateNutrients(products: Product[]): AggNutrient[] {
   const map = new Map<string, { amount: number; unit: string }>()
   for (const p of products) {
+    const mult = getMultiplier(p)
     for (const n of p.nutrients) {
       const key = `${n.name}||${n.unit}`
+      const amount = parseFloat((n.amount * mult).toFixed(4))
       const ex = map.get(key)
-      if (ex) ex.amount = parseFloat((ex.amount + n.amount).toFixed(4))
-      else map.set(key, { amount: n.amount, unit: n.unit })
+      if (ex) ex.amount = parseFloat((ex.amount + amount).toFixed(4))
+      else map.set(key, { amount, unit: n.unit })
     }
   }
   return Array.from(map.entries()).map(([k, v]) => ({ name: k.split("||")[0], ...v }))
@@ -110,7 +117,7 @@ const FOOD_BRIDGE: Record<string, { name: string; amount: string; icon: string }
 type TrendPoint = { month: number; ri: number | null; intake: number }
 
 function buildNutrientTrendData(nutrientKey: string, currentIntake: number): TrendPoint[] {
-  return Array.from({ length: 37 }, (_, month) => {
+  return Array.from({ length: MAX_MONTHS + 1 }, (_, month) => {
     const group = getAgeGroup(month)
     const riEntry = KDRI_RI[group]?.[nutrientKey]
     return {
@@ -133,11 +140,16 @@ function NutrientTrendChart({
     [nutrientKey, currentIntake],
   )
 
-  // 현재 월령의 RI
-  const currentRI = KDRI_RI[getAgeGroup(currentMonths)]?.[nutrientKey]?.ri ?? null
-  // 36개월 시점의 RI
-  const futureRI  = KDRI_RI["12-35"]?.[nutrientKey]?.ri ?? null
+  // 현재 월령의 RI / UL
+  const currentRI  = KDRI_RI[getAgeGroup(currentMonths)]?.[nutrientKey]?.ri ?? null
+  const currentUL  = KDRI_UL[getAgeGroup(currentMonths)]?.[nutrientKey] ?? null
+  // 다음 연령 구간의 RI (없으면 null — 마지막 구간)
+  const currentAgeGroup = getAgeGroup(currentMonths)
+  const nextThreshold   = NEXT_AGE_THRESHOLD[currentAgeGroup]
+  const nextGroup       = nextThreshold !== null ? getAgeGroup(nextThreshold) : null
+  const futureRI        = nextGroup ? (KDRI_RI[nextGroup]?.[nutrientKey]?.ri ?? null) : null
   const hasFutureGap = futureRI !== null && currentIntake < futureRI
+  const isNearUL   = currentUL !== null && currentIntake >= currentUL * 0.8
 
   const displayCur = parseFloat(currentIntake.toFixed(2))
 
@@ -160,7 +172,7 @@ function NutrientTrendChart({
       <div className="flex items-center gap-4 mb-2">
         <div className="flex items-center gap-1.5">
           <svg width={22} height={8}><line x1="0" y1="4" x2="22" y2="4" stroke="#10b981" strokeWidth="2" strokeDasharray="5 3" /></svg>
-          <span className="text-[10px] font-bold text-emerald-600">권장량 (RI)</span>
+          <span className="text-[10px] font-bold text-emerald-600">목표량 (RI)</span>
         </div>
         <div className="flex items-center gap-1.5">
           <svg width={22} height={8}><line x1="0" y1="4" x2="22" y2="4" stroke="#f97316" strokeWidth="2.5" /></svg>
@@ -178,8 +190,8 @@ function NutrientTrendChart({
           <XAxis
             dataKey="month"
             type="number"
-            domain={[0, 36]}
-            ticks={[0, 6, 12, 18, 24, 30, 36]}
+            domain={[0, MAX_MONTHS]}
+            ticks={[0, 12, 24, 36, 48, 60, 72, 84]}
             tick={{ fontSize: 9, fill: "#9ca3af", fontWeight: 600 }}
             tickLine={false}
             axisLine={{ stroke: "#e5e7eb" }}
@@ -201,7 +213,7 @@ function NutrientTrendChart({
               return (
                 <div className="bg-white border border-stone-200 rounded-xl shadow-lg px-3 py-2 text-xs min-w-[110px]">
                   <p className="font-extrabold text-stone-600 mb-1">{label}개월</p>
-                  {ri != null && <p className="font-bold text-emerald-600">권장량: {ri}{unit}</p>}
+                  {ri != null && <p className="font-bold text-emerald-600">목표량: {ri}{unit}</p>}
                   <p className="font-bold text-orange-500">섭취량: {typeof intake === "number" ? parseFloat(intake.toFixed(2)) : "-"}{unit}</p>
                 </div>
               )
@@ -220,7 +232,7 @@ function NutrientTrendChart({
           {/* RI 선: 계단식 점선 (실제 kdri_data) */}
           <Line
             dataKey="ri"
-            name="권장량"
+            name="목표량"
             type="stepAfter"
             stroke="#10b981"
             strokeWidth={2}
@@ -250,11 +262,17 @@ function NutrientTrendChart({
         <span className="text-[10px] font-bold text-stone-400">
           현재 섭취: <span className="text-orange-500">{displayCur}{unit}</span>
           {currentRI !== null && (
-            <span className="ml-1">/ 권장 <span className="text-emerald-600">{currentRI}{unit}</span></span>
+            <span className="ml-1">/ 목표 <span className="text-emerald-600">{currentRI}{unit}</span></span>
+          )}
+          {currentUL !== null && (
+            <span className="ml-1">/ 상한 <span className="text-rose-400">{currentUL}{unit}</span></span>
           )}
         </span>
-        {currentRI !== null && currentIntake >= currentRI && (
+        {currentRI !== null && currentIntake >= currentRI && !isNearUL && (
           <span className="text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">✓ 현재 충족</span>
+        )}
+        {isNearUL && (
+          <span className="text-[10px] font-extrabold text-rose-500 bg-rose-50 px-2 py-0.5 rounded-full">⚠ 상한 근접</span>
         )}
       </div>
 
@@ -265,7 +283,7 @@ function NutrientTrendChart({
             <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
           </svg>
           <p className="text-[11px] text-stone-600 leading-snug">
-            12개월 이후 {name} 권장량(<strong className="text-emerald-600">{futureRI}{unit}</strong>) 대비 현재 섭취량이 부족합니다. 건기식 조합 조정을 검토해보세요.
+            {nextThreshold}개월 이후 {name} 목표량(<strong className="text-emerald-600">{futureRI}{unit}</strong>)이 높아질 수 있어요. 건기식 조합을 미리 살펴보세요.
           </p>
         </div>
       )}
@@ -287,16 +305,16 @@ function DietaryBridgeBar({ row }: { row: RIRow }) {
         <div className="flex justify-between items-end px-0.5">
           <div className="flex items-center gap-2">
             <span className="font-extrabold text-stone-800 text-sm">{name}</span>
-            <span className="bg-rose-100 text-rose-600 text-[10px] font-extrabold px-2 py-0.5 rounded-md">위험</span>
+            <span className="bg-rose-100 text-rose-600 text-[10px] font-extrabold px-2 py-0.5 rounded-md">상한 초과</span>
           </div>
           <div className="text-xs font-bold">
             <span className="text-rose-600 text-sm">{displayCur}</span>
-            <span className="text-stone-400 text-[10px] ml-0.5">/ UL {ulVal}{displayUnit}</span>
+            <span className="text-stone-400 text-[10px] ml-0.5">/ 목표 {ri} · 상한 {ulVal}{displayUnit}</span>
           </div>
         </div>
         <div className="w-full h-12 bg-rose-500 rounded-xl flex items-center px-4 relative overflow-hidden">
           <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "repeating-linear-gradient(45deg, transparent, transparent 10px, #000 10px, #000 20px)" }} />
-          <span className="relative z-10 text-white text-xs font-extrabold tracking-wide">상한 섭취량(UL) 초과 — 복용량을 줄여주세요</span>
+          <span className="relative z-10 text-white text-xs font-extrabold tracking-wide">상한 섭취량(UL) 초과 — 복용량 조절을 살펴보세요</span>
         </div>
       </div>
     )
@@ -319,7 +337,10 @@ function DietaryBridgeBar({ row }: { row: RIRow }) {
         </div>
         <div className="text-xs font-bold">
           <span className={`text-sm ${isMet ? "text-emerald-600" : "text-stone-800"}`}>{displayCur}</span>
-          <span className="text-stone-400 text-[10px] ml-0.5">/ 권장 {ri}{displayUnit}</span>
+          <span className="text-stone-400 text-[10px] ml-0.5">/ 목표 {ri}{displayUnit}</span>
+          {ulVal !== undefined && (
+            <span className="text-stone-300 text-[10px] ml-1">· 상한 {ulVal}</span>
+          )}
         </div>
       </div>
 
@@ -374,7 +395,7 @@ function DietaryBridgeBar({ row }: { row: RIRow }) {
       {/* 부족 안내 메시지 */}
       {isDeficient && (
         <p className="text-[11px] font-medium text-stone-500 px-0.5 leading-snug">
-          건기식으로 <strong className="text-orange-500">{parseFloat((ri - current).toFixed(2))}{displayUnit}</strong> 부족하지만, 위 식품을 드셨다면 충분히 채울 수 있어요.
+          건기식으로 <strong className="text-orange-500">{parseFloat((ri - current).toFixed(2))}{displayUnit}</strong>만큼 더 살펴볼 수 있어요. 위 식품을 통해서도 채울 수 있어요.
         </p>
       )}
     </div>
@@ -453,8 +474,8 @@ function getWeekDays(hasDataToday: boolean) {
 export default function RecordPage() {
   const {
     gender: storeGender, setGender: setStoreGender,
+    monthsOld: storeMonthsOld,
     selectedProducts,
-    selectedRoutineFoods,
     growthRecords, addGrowthRecord, removeGrowthRecord,
   } = useAppStore()
 
@@ -463,14 +484,16 @@ export default function RecordPage() {
   const [nutritionView, setNutritionView] = useState<NutritionView>("daily")
   const [selectedDay, setSelectedDay] = useState("today")
   const [localGender, setLocalGender] = useState<"M" | "F">(storeGender)
-  const [localMonths, setLocalMonths] = useState(12)
-  const [monthInput, setMonthInput]   = useState("12")
+  const [localMonths, setLocalMonths] = useState(storeMonthsOld)
+  const [monthInput, setMonthInput]   = useState(String(storeMonthsOld))
 
   // ── 성장 탭 전용 ──────────────────────────────────────────────────────────
   const [chartTab, setChartTab]       = useState<ChartTab>("height")
   const [heightInput, setHeightInput] = useState("")
   const [weightInput, setWeightInput] = useState("")
   const [errors, setErrors]           = useState<{ height?: string; weight?: string }>({})
+  // 현재 localMonths에 이미 저장된 기록이 있으면 "수정 모드" 안내
+  const existingRecord = growthRecords.find((r) => r.monthsOld === localMonths) ?? null
 
   // ── 데이터 ────────────────────────────────────────────────────────────────
   const heightData = getHeightData(localGender)
@@ -483,21 +506,37 @@ export default function RecordPage() {
 
   function commitMonth(raw: string) {
     const v = parseInt(raw)
-    const c = isNaN(v) ? localMonths : Math.min(36, Math.max(0, v))
+    const c = isNaN(v) ? localMonths : Math.min(MAX_MONTHS, Math.max(MIN_MONTHS, v))
     setLocalMonths(c)
     setMonthInput(String(c))
   }
 
   // ── 성장 차트 데이터 ─────────────────────────────────────────────────────
-  const chartData = useMemo(() => {
+  // 37~84개월처럼 6개월 간격 구간에서도 아이 기록 점이 차트에 표시되도록
+  // 참조 데이터 외 월령의 기록을 extra 포인트로 추가하고, 참조 곡선은 connectNulls로 이어 줌
+  type ChartPoint = { month: number; p5: number | null; p50: number | null; p95: number | null; 내아이: number | null }
+  const chartData = useMemo<ChartPoint[]>(() => {
     const ref = chartTab === "height" ? heightData : weightData
-    return ref.map((row) => {
+    const refMonths = new Set(ref.map((r) => r.month))
+
+    const refPoints: ChartPoint[] = ref.map((row) => {
       const rec = growthRecords.find((r) => r.monthsOld === row.month)
       return {
         month: row.month, p5: row.p5, p50: row.p50, p95: row.p95,
         내아이: rec ? (chartTab === "height" ? rec.height : rec.weight) : null,
       }
     })
+
+    // 참조 데이터에 없는 월령(예: 37~41개월)에 기록된 데이터를 별도 포인트로 추가
+    const extraPoints: ChartPoint[] = growthRecords
+      .filter((r) => !refMonths.has(r.monthsOld))
+      .map((r) => ({
+        month: r.monthsOld,
+        p5: null, p50: null, p95: null,
+        내아이: chartTab === "height" ? r.height : r.weight,
+      }))
+
+    return [...refPoints, ...extraPoints].sort((a, b) => a.month - b.month)
   }, [chartTab, heightData, weightData, growthRecords])
 
   // ── 성장 기록 입력 ────────────────────────────────────────────────────────
@@ -505,9 +544,9 @@ export default function RecordPage() {
     const errs: typeof errors = {}
     const h = parseFloat(heightInput), w = parseFloat(weightInput)
     if (!heightInput || isNaN(h))  errs.height = "키를 입력해 주세요."
-    else if (h < 30 || h > 130)   errs.height = "30~130cm 범위로 입력해 주세요."
+    else if (h < 30 || h > 160)   errs.height = "30~160cm 범위로 입력해 주세요."
     if (!weightInput || isNaN(w))  errs.weight = "체중을 입력해 주세요."
-    else if (w < 1 || w > 30)     errs.weight = "1~30kg 범위로 입력해 주세요."
+    else if (w < 1 || w > 40)     errs.weight = "1~40kg 범위로 입력해 주세요."
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -523,26 +562,36 @@ export default function RecordPage() {
     setHeightInput(""); setWeightInput(""); setErrors({})
   }
 
+  // 목록의 "수정" 버튼 → 해당 기록 값을 폼에 채운다
+  function startEdit(r: GrowthRecord) {
+    setLocalMonths(r.monthsOld)
+    setMonthInput(String(r.monthsOld))
+    setHeightInput(String(r.height))
+    setWeightInput(String(r.weight))
+    setErrors({})
+  }
+
   // ── 최신 기록 + 백분위 ────────────────────────────────────────────────────
-  const latestRecord = growthRecords.length > 0 ? growthRecords[growthRecords.length - 1] : null
-  const latestHRow   = latestRecord ? heightData.find((d) => d.month === latestRecord.monthsOld) : null
-  const latestWRow   = latestRecord ? weightData.find((d) => d.month === latestRecord.monthsOld) : null
+  // 37~84개월 구간은 6개월 간격 데이터만 있으므로 nearest-match 사용
+  const latestRecord  = growthRecords.length > 0 ? growthRecords[growthRecords.length - 1] : null
+  const latestHMatch  = latestRecord ? findNearestGrowthRow(heightData, latestRecord.monthsOld) : null
+  const latestWMatch  = latestRecord ? findNearestGrowthRow(weightData, latestRecord.monthsOld) : null
+  const latestHRow    = latestHMatch?.row ?? null
+  const latestWRow    = latestWMatch?.row ?? null
+  const latestIsApprox = latestHMatch !== null && !latestHMatch.exact
 
   // ── 영양 리포트 데이터 ────────────────────────────────────────────────────
-  const aggregated     = useMemo(() => aggregateNutrients(selectedProducts), [selectedProducts])
-  const routineContrib = useMemo(() => computeRoutineContribution(selectedRoutineFoods), [selectedRoutineFoods])
-  const riData         = getRecommendedIntakes(localMonths)
-  const ulData         = getUpperLimits(localMonths)
-  const ageGroup       = getAgeGroup(localMonths)
+  const aggregated = useMemo(() => aggregateNutrients(selectedProducts), [selectedProducts])
+  const riData     = getRecommendedIntakes(localMonths)
+  const ulData     = getUpperLimits(localMonths)
+  const ageGroup   = getAgeGroup(localMonths)
 
   const riRows: RIRow[] = useMemo(() => {
     return Object.entries(riData).map(([key, entry]) => {
       const [name, unit] = key.split("||")
-      const suppAmount   = getCurrentAmount(name, unit, aggregated)
-      const routineAmt   = routineContrib[key] ?? 0
-      const current      = parseFloat((suppAmount + routineAmt).toFixed(4))
-      const pct          = entry.ri > 0 ? (current / entry.ri) * 100 : 0
-      const ulVal        = ulData[key]
+      const current = parseFloat(getCurrentAmount(name, unit, aggregated).toFixed(4))
+      const pct     = entry.ri > 0 ? (current / entry.ri) * 100 : 0
+      const ulVal   = ulData[key]
       return {
         key, name, unit,
         ri: entry.ri, current,
@@ -553,9 +602,11 @@ export default function RecordPage() {
         foodSource:  entry.foodSource,
       }
     })
-  }, [riData, ulData, aggregated, routineContrib])
+  }, [riData, ulData, aggregated])
 
-  const exceededRows  = riRows.filter((r) => r.isExceeded)
+  const exceededRows   = riRows.filter((r) => r.isExceeded)
+  const deficientRows  = riRows.filter((r) => r.isDeficient && !r.isExceeded)
+  const firstDeficientNutrient = deficientRows[0]?.name ?? null
 
   // ── 주간 캘린더 ───────────────────────────────────────────────────────────
   const weekDays = useMemo(() => getWeekDays(selectedProducts.length > 0), [selectedProducts.length])
@@ -584,11 +635,11 @@ export default function RecordPage() {
           {/* 성별 + 월령 */}
           <div className="flex items-center gap-2">
             <div className="flex items-center bg-stone-100 rounded-xl p-0.5">
-              <button onClick={() => handleGender("M")} className={`px-2.5 py-1 rounded-[10px] text-xs font-extrabold transition-colors ${localGender === "M" ? "bg-blue-500 text-white shadow-sm" : "text-stone-400"}`}>남아</button>
-              <button onClick={() => handleGender("F")} className={`px-2.5 py-1 rounded-[10px] text-xs font-extrabold transition-colors ${localGender === "F" ? "bg-rose-400 text-white shadow-sm" : "text-stone-400"}`}>여아</button>
+              <button onClick={() => handleGender("M")} aria-label="남아 선택" aria-pressed={localGender === "M"} className={`px-2.5 py-1 rounded-[10px] text-xs font-extrabold transition-colors ${localGender === "M" ? "bg-blue-500 text-white shadow-sm" : "text-stone-400"}`}>남아</button>
+              <button onClick={() => handleGender("F")} aria-label="여아 선택" aria-pressed={localGender === "F"} className={`px-2.5 py-1 rounded-[10px] text-xs font-extrabold transition-colors ${localGender === "F" ? "bg-rose-400 text-white shadow-sm" : "text-stone-400"}`}>여아</button>
             </div>
             <div className="flex items-center gap-1 bg-[#FFFBF7] border border-stone-200 rounded-xl px-2 py-1">
-              <button onClick={() => { const n = Math.max(0, localMonths - 1); setLocalMonths(n); setMonthInput(String(n)) }} className="w-5 h-5 flex items-center justify-center text-stone-400 font-bold text-base leading-none">-</button>
+              <button onClick={() => { const n = Math.max(MIN_MONTHS, localMonths - 1); setLocalMonths(n); setMonthInput(String(n)) }} aria-label="월령 줄이기" className="w-5 h-5 flex items-center justify-center text-stone-400 font-bold text-base leading-none">-</button>
               <div className="flex items-center">
                 <input
                   type="number" inputMode="numeric" value={monthInput}
@@ -599,7 +650,7 @@ export default function RecordPage() {
                 />
                 <span className="text-sm font-extrabold text-orange-600">개월</span>
               </div>
-              <button onClick={() => { const n = Math.min(36, localMonths + 1); setLocalMonths(n); setMonthInput(String(n)) }} className="w-5 h-5 flex items-center justify-center text-stone-400 font-bold text-base leading-none">+</button>
+              <button onClick={() => { const n = Math.min(MAX_MONTHS, localMonths + 1); setLocalMonths(n); setMonthInput(String(n)) }} aria-label="월령 늘리기" className="w-5 h-5 flex items-center justify-center text-stone-400 font-bold text-base leading-none">+</button>
             </div>
           </div>
         </div>
@@ -609,12 +660,14 @@ export default function RecordPage() {
           <div className="flex bg-stone-100 rounded-2xl p-1">
             <button
               onClick={() => setPageTab("growth")}
+              aria-pressed={pageTab === "growth"}
               className={`flex-1 py-2 rounded-xl text-sm font-extrabold transition-all ${pageTab === "growth" ? "bg-white text-stone-800 shadow-sm" : "text-stone-400"}`}
             >
               성장 기록
             </button>
             <button
               onClick={() => setPageTab("nutrition")}
+              aria-pressed={pageTab === "nutrition"}
               className={`flex-1 py-2 rounded-xl text-sm font-extrabold transition-all ${pageTab === "nutrition" ? "bg-white text-stone-800 shadow-sm" : "text-stone-400"}`}
             >
               영양 리포트
@@ -635,6 +688,7 @@ export default function RecordPage() {
                   <h2 className="text-xs font-extrabold text-stone-600">최근 측정 결과</h2>
                   <span className="text-[10px] font-bold text-stone-400 bg-stone-50 px-2 py-0.5 rounded-md">
                     {latestRecord.monthsOld}개월 · {latestRecord.date}
+                    {latestIsApprox && <span className="text-stone-300 ml-1">· 참고 기준</span>}
                   </span>
                 </div>
                 <div className="flex gap-5">
@@ -642,11 +696,25 @@ export default function RecordPage() {
                   <div className="w-px bg-stone-100" />
                   <PercentileBar value={latestRecord.weight} row={latestWRow} label="체중" />
                 </div>
+                {latestIsApprox && latestHMatch && (
+                  <p className="text-[10px] text-stone-400 text-center mt-2">
+                    * {latestHMatch.nearestMonth}개월 기준 참고 곡선이에요
+                  </p>
+                )}
               </div>
             )}
 
             <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 flex flex-col gap-3">
-              <h2 className="text-sm font-extrabold text-stone-700">{localMonths}개월 기록 추가</h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-extrabold text-stone-700">
+                  {existingRecord ? `${localMonths}개월 기록 수정` : `${localMonths}개월 기록 추가`}
+                </h2>
+                {existingRecord && (
+                  <span className="text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                    저장 시 기존 기록 덮어씌우기
+                  </span>
+                )}
+              </div>
               <div className="flex gap-3">
                 <div className="flex-1 flex flex-col gap-1">
                   <label className="text-[10px] font-bold text-stone-500">키 (cm)</label>
@@ -662,28 +730,28 @@ export default function RecordPage() {
                 </div>
               </div>
               <button onClick={handleSubmit} className="w-full py-3 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-extrabold rounded-xl text-sm transition-colors">
-                기록하기
+                {existingRecord ? "수정하기" : "기록하기"}
               </button>
             </div>
 
             <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 flex flex-col gap-3">
               <div className="flex gap-2">
-                <button onClick={() => setChartTab("height")} className={`flex-1 py-2 rounded-xl text-xs font-extrabold transition-colors ${chartTab === "height" ? "bg-emerald-500 text-white" : "bg-stone-100 text-stone-500"}`}>키 성장곡선</button>
-                <button onClick={() => setChartTab("weight")} className={`flex-1 py-2 rounded-xl text-xs font-extrabold transition-colors ${chartTab === "weight" ? "bg-emerald-500 text-white" : "bg-stone-100 text-stone-500"}`}>체중 성장곡선</button>
+                <button onClick={() => setChartTab("height")} aria-pressed={chartTab === "height"} className={`flex-1 py-2 rounded-xl text-xs font-extrabold transition-colors ${chartTab === "height" ? "bg-emerald-500 text-white" : "bg-stone-100 text-stone-500"}`}>키 성장곡선</button>
+                <button onClick={() => setChartTab("weight")} aria-pressed={chartTab === "weight"} className={`flex-1 py-2 rounded-xl text-xs font-extrabold transition-colors ${chartTab === "weight" ? "bg-emerald-500 text-white" : "bg-stone-100 text-stone-500"}`}>체중 성장곡선</button>
               </div>
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-1.5"><svg width={22} height={8}><line x1="0" y1="4" x2="22" y2="4" stroke="#d1d5db" strokeWidth="2" strokeDasharray="4 3" /></svg><span className="text-[10px] font-bold text-stone-400">P5 · P50 · P95</span></div>
                 <div className="flex items-center gap-1.5"><svg width={22} height={8}><line x1="0" y1="4" x2="22" y2="4" stroke="#10b981" strokeWidth="2.5" /></svg><span className="text-[10px] font-bold text-emerald-600">우리 아이</span></div>
               </div>
               <div className="overflow-x-auto -mx-4 px-2">
-                <LineChart width={680} height={248} data={chartData} margin={{ top: 6, right: 16, left: -12, bottom: 20 }}>
+                <LineChart width={760} height={248} data={chartData} margin={{ top: 6, right: 16, left: -12, bottom: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                  <XAxis dataKey="month" tick={{ fontSize: 10, fill: "#9ca3af", fontWeight: 600 }} tickLine={false} axisLine={{ stroke: "#e5e7eb" }} ticks={[0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36]} label={{ value: "월령(개월)", position: "insideBottom", offset: -6, fontSize: 10, fill: "#9ca3af" }} height={38} />
+                  <XAxis dataKey="month" tick={{ fontSize: 10, fill: "#9ca3af", fontWeight: 600 }} tickLine={false} axisLine={{ stroke: "#e5e7eb" }} ticks={[0, 12, 24, 36, 48, 60, 72, 84]} label={{ value: "월령(개월)", position: "insideBottom", offset: -6, fontSize: 10, fill: "#9ca3af" }} height={38} />
                   <YAxis tick={{ fontSize: 10, fill: "#9ca3af", fontWeight: 600 }} tickLine={false} axisLine={false} width={44} />
                   <Tooltip content={<ChartTooltip tab={chartTab} />} />
-                  <Line dataKey="p5"  name="P5"  stroke="#d1d5db" strokeWidth={1.5} strokeDasharray="5 4" dot={false} activeDot={false} isAnimationActive={false} />
-                  <Line dataKey="p50" name="P50" stroke="#9ca3af" strokeWidth={1.5} strokeDasharray="5 4" dot={false} activeDot={false} isAnimationActive={false} />
-                  <Line dataKey="p95" name="P95" stroke="#d1d5db" strokeWidth={1.5} strokeDasharray="5 4" dot={false} activeDot={false} isAnimationActive={false} />
+                  <Line dataKey="p5"  name="P5"  stroke="#d1d5db" strokeWidth={1.5} strokeDasharray="5 4" dot={false} activeDot={false} connectNulls isAnimationActive={false} />
+                  <Line dataKey="p50" name="P50" stroke="#9ca3af" strokeWidth={1.5} strokeDasharray="5 4" dot={false} activeDot={false} connectNulls isAnimationActive={false} />
+                  <Line dataKey="p95" name="P95" stroke="#d1d5db" strokeWidth={1.5} strokeDasharray="5 4" dot={false} activeDot={false} connectNulls isAnimationActive={false} />
                   <Line dataKey="내아이" name="내아이" stroke="#10b981" strokeWidth={2.5} connectNulls={false}
                     dot={(props) => {
                       const { cx, cy, payload } = props
@@ -701,14 +769,15 @@ export default function RecordPage() {
               <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 flex flex-col gap-3">
                 <h2 className="text-sm font-extrabold text-stone-700">측정 기록</h2>
                 <div className="flex flex-col gap-2">
-                  {[...growthRecords].reverse().map((r, idx) => {
-                    const ri   = growthRecords.length - 1 - idx
-                    const hRow = heightData.find((d) => d.month === r.monthsOld)
-                    const wRow = weightData.find((d) => d.month === r.monthsOld)
-                    const hPct = hRow ? calcPct(r.height, hRow) : null
-                    const wPct = wRow ? calcPct(r.weight, wRow) : null
+                  {[...growthRecords].reverse().map((r) => {
+                    const hMatch  = findNearestGrowthRow(heightData, r.monthsOld)
+                    const wMatch  = findNearestGrowthRow(weightData, r.monthsOld)
+                    const hPct    = hMatch ? calcPct(r.height, hMatch.row) : null
+                    const wPct    = wMatch ? calcPct(r.weight, wMatch.row) : null
+                    const isApprox = hMatch !== null && !hMatch.exact
+                    const isEditing = localMonths === r.monthsOld && heightInput !== ""
                     return (
-                      <div key={ri} className="flex items-center justify-between bg-stone-50 rounded-xl px-3 py-2.5">
+                      <div key={r.monthsOld} className={`flex items-center justify-between rounded-xl px-3 py-2.5 transition-colors ${isEditing ? "bg-amber-50 border border-amber-200" : "bg-stone-50"}`}>
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-700 text-xs font-extrabold">{r.monthsOld}m</div>
                           <div>
@@ -718,13 +787,27 @@ export default function RecordPage() {
                               <p className="text-[10px] font-bold text-stone-400 mt-0.5">
                                 키 <span style={{ color: pctColor(hPct) }}>P{hPct}</span>
                                 {" · "}체중 <span style={{ color: pctColor(wPct) }}>P{wPct}</span>
+                                {isApprox && <span className="text-stone-300 ml-1">(참고)</span>}
                               </p>
                             )}
                           </div>
                         </div>
-                        <button onClick={() => removeGrowthRecord(ri)} className="p-1.5 rounded-full text-stone-300 hover:text-rose-400 hover:bg-rose-50 transition-colors">
-                          <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                        </button>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => startEdit(r)}
+                            aria-label={`${r.monthsOld}개월 기록 수정`}
+                            className="px-2 py-1 text-[10px] font-bold text-stone-400 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-colors"
+                          >
+                            수정
+                          </button>
+                          <button
+                            onClick={() => removeGrowthRecord(r.monthsOld)}
+                            aria-label={`${r.monthsOld}개월 기록 삭제`}
+                            className="p-1.5 rounded-full text-stone-300 hover:text-rose-400 hover:bg-rose-50 transition-colors"
+                          >
+                            <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                          </button>
+                        </div>
                       </div>
                     )
                   })}
@@ -746,7 +829,7 @@ export default function RecordPage() {
             >
               <div>
                 <p className="text-xs font-extrabold text-amber-700">💡 건기식이 성장에 충분한지 확인해보세요</p>
-                <p className="text-[11px] text-amber-600 font-medium mt-0.5">권장 섭취량 대비 현재 섭취 현황 분석</p>
+                <p className="text-[11px] text-amber-600 font-medium mt-0.5">목표량 대비 현재 섭취 현황 살펴보기</p>
               </div>
               <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
             </button>
@@ -760,6 +843,7 @@ export default function RecordPage() {
             <div className="flex bg-stone-100 rounded-2xl p-1">
               <button
                 onClick={() => setNutritionView("daily")}
+                aria-pressed={nutritionView === "daily"}
                 className={`flex-1 py-2 rounded-xl text-sm font-extrabold transition-all flex justify-center items-center gap-1.5 ${nutritionView === "daily" ? "bg-white text-stone-800 shadow-sm" : "text-stone-400"}`}
               >
                 <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
@@ -769,6 +853,7 @@ export default function RecordPage() {
               </button>
               <button
                 onClick={() => setNutritionView("trend")}
+                aria-pressed={nutritionView === "trend"}
                 className={`flex-1 py-2 rounded-xl text-sm font-extrabold transition-all flex justify-center items-center gap-1.5 ${nutritionView === "trend" ? "bg-white text-stone-800 shadow-sm" : "text-stone-400"}`}
               >
                 <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
@@ -824,7 +909,7 @@ export default function RecordPage() {
                           {r.name}이(가) 상한({r.ulVal}{r.unit})을 초과했습니다!
                         </p>
                         <p className="text-[11px] text-red-600 font-medium mt-0.5">
-                          현재 {parseFloat(r.current.toFixed(2))}{r.unit} 섭취 중 — 해당 건기식 복용량을 줄여주세요.
+                          현재 {parseFloat(r.current.toFixed(2))}{r.unit} 설계 중 — 복용량 조절을 살펴보세요.
                         </p>
                       </div>
                     ))}
@@ -878,6 +963,26 @@ export default function RecordPage() {
                     ))}
                   </div>
                 )}
+
+                {/* Search 연결 CTA — 부족 영양소가 있을 때 탐색으로 자연스럽게 이어지도록 */}
+                {isViewingToday && selectedProducts.length > 0 && deficientRows.length > 0 && (
+                  <Link
+                    href={firstDeficientNutrient ? `/search?nutrient=${encodeURIComponent(firstDeficientNutrient)}` : "/search"}
+                    className="w-full flex items-center justify-between bg-orange-50 border border-orange-200 rounded-2xl px-4 py-3.5"
+                  >
+                    <div>
+                      <p className="text-xs font-extrabold text-orange-700">다른 제품이 궁금하다면</p>
+                      <p className="text-[11px] text-orange-600 font-medium mt-0.5">
+                        {firstDeficientNutrient
+                          ? `${firstDeficientNutrient} 포함 제품 탐색하기`
+                          : "탐색 탭에서 비교해보기"}
+                      </p>
+                    </div>
+                    <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#ea580c" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9 18l6-6-6-6" />
+                    </svg>
+                  </Link>
+                )}
               </>
             )}
 
@@ -889,7 +994,7 @@ export default function RecordPage() {
                     <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
                   </svg>
                   <p className="text-[11px] text-amber-700 font-medium leading-snug">
-                    현재 건기식 조합을 유지할 경우, 아이 성장에 따른 권장량(RI) 변화 대비 <strong>부족해지는 시점</strong>을 예측합니다.
+                    현재 건기식 조합을 유지할 경우, 아이 성장에 따른 목표량(RI) 변화를 함께 살펴볼 수 있어요.
                   </p>
                 </div>
                 {riRows.map((row) => (
@@ -916,6 +1021,26 @@ export default function RecordPage() {
               </div>
               <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
             </button>
+
+            {/* Search 연결 CTA — 추이에서 살펴볼 것이 있을 때 */}
+            {deficientRows.length > 0 && (
+              <Link
+                href={firstDeficientNutrient ? `/search?nutrient=${encodeURIComponent(firstDeficientNutrient)}` : "/search"}
+                className="w-full flex items-center justify-between bg-orange-50 border border-orange-200 rounded-2xl px-4 py-3.5"
+              >
+                <div>
+                  <p className="text-xs font-extrabold text-orange-700">다른 제품이 궁금하다면</p>
+                  <p className="text-[11px] text-orange-600 font-medium mt-0.5">
+                    {firstDeficientNutrient
+                      ? `${firstDeficientNutrient} 포함 제품 탐색하기`
+                      : "탐색 탭에서 비교해보기"}
+                  </p>
+                </div>
+                <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#ea580c" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 18l6-6-6-6" />
+                </svg>
+              </Link>
+            )}
           </>
         )}
 

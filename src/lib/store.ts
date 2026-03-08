@@ -1,9 +1,6 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import type { Product } from "./types"
-import type { RoutineFood, SelectedRoutineFood } from "./routine_foods"
-
-export type { SelectedRoutineFood }
 
 export type GrowthRecord = {
   date: string
@@ -14,24 +11,22 @@ export type GrowthRecord = {
 
 type AppStore = {
   selectedProducts: Product[]
-  selectedRoutineFoods: SelectedRoutineFood[]
   monthsOld: number
   gender: "M" | "F"
   growthRecords: GrowthRecord[]
   toggleProduct: (product: Product) => void
-  setRoutineFood: (food: RoutineFood, amountPerDay: number) => void
-  removeRoutineFood: (foodId: string) => void
+  /** formula/milk/cheese: 하루 섭취량(ml 또는 장 수)을 지정해서 upsert */
+  setProductVolume: (product: Product, dailyAmount: number) => void
   setMonthsOld: (months: number) => void
   setGender: (gender: "M" | "F") => void
   addGrowthRecord: (record: GrowthRecord) => void
-  removeGrowthRecord: (index: number) => void
+  removeGrowthRecord: (monthsOld: number) => void
 }
 
 export const useAppStore = create<AppStore>()(
   persist(
     (set) => ({
       selectedProducts: [],
-      selectedRoutineFoods: [],
       monthsOld: 12,
       gender: "M",
       growthRecords: [],
@@ -43,35 +38,31 @@ export const useAppStore = create<AppStore>()(
             : [...state.selectedProducts, product],
         })),
 
-      setRoutineFood: (food, amountPerDay) =>
+      setProductVolume: (product, dailyAmount) =>
         set((state) => {
-          const existing = state.selectedRoutineFoods.find((f) => f.food.id === food.id)
-          if (existing) {
-            return {
-              selectedRoutineFoods: state.selectedRoutineFoods.map((f) =>
-                f.food.id === food.id ? { food, amountPerDay } : f
-              ),
-            }
-          }
+          const updated = { ...product, daily_serving_count: dailyAmount }
+          const exists = state.selectedProducts.some((p) => p.id === product.id)
           return {
-            selectedRoutineFoods: [...state.selectedRoutineFoods, { food, amountPerDay }],
+            selectedProducts: exists
+              ? state.selectedProducts.map((p) => (p.id === product.id ? updated : p))
+              : [...state.selectedProducts, updated],
           }
         }),
-
-      removeRoutineFood: (foodId) =>
-        set((state) => ({
-          selectedRoutineFoods: state.selectedRoutineFoods.filter((f) => f.food.id !== foodId),
-        })),
 
       setMonthsOld: (months) => set({ monthsOld: months }),
       setGender: (gender) => set({ gender }),
       addGrowthRecord: (record) =>
+        set((state) => {
+          // 동일 monthsOld 기록이 있으면 덮어씀 (upsert), 없으면 추가
+          const exists = state.growthRecords.some((r) => r.monthsOld === record.monthsOld)
+          const updated = exists
+            ? state.growthRecords.map((r) => (r.monthsOld === record.monthsOld ? record : r))
+            : [...state.growthRecords, record]
+          return { growthRecords: updated.sort((a, b) => a.monthsOld - b.monthsOld) }
+        }),
+      removeGrowthRecord: (monthsOld) =>
         set((state) => ({
-          growthRecords: [...state.growthRecords, record].sort((a, b) => a.monthsOld - b.monthsOld),
-        })),
-      removeGrowthRecord: (index) =>
-        set((state) => ({
-          growthRecords: state.growthRecords.filter((_, i) => i !== index),
+          growthRecords: state.growthRecords.filter((r) => r.monthsOld !== monthsOld),
         })),
     }),
     { name: "papain-store" }

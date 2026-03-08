@@ -43,5 +43,6 @@ next-env.d.ts
 # project-specific: AI session, pipeline scripts, planning docs
 .claude/
 data_pipeline/
-docs/
 plan.md
+
+.vercel

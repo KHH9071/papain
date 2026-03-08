@@ -15,7 +15,11 @@ async function getProducts(): Promise<Product[]> {
   return (data ?? []) as Product[]
 }
 
-export default async function SearchPage() {
-  const products = await getProducts()
-  return <SearchClient initialProducts={products} />
+export default async function SearchPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ nutrient?: string }>
+}) {
+  const [products, { nutrient }] = await Promise.all([getProducts(), searchParams])
+  return <SearchClient initialProducts={products} initialNutrient={nutrient} />
 }

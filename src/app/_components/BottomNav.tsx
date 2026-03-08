@@ -22,15 +22,18 @@ export default function BottomNav() {
     <>
       {/* Fake Door Toast */}
       {toast && (
-        <div className="absolute bottom-[72px] left-4 right-4 z-50 pointer-events-none">
+        <div className="absolute bottom-[80px] left-4 right-4 z-50 pointer-events-none">
           <div className="bg-stone-800 text-white text-sm font-bold px-5 py-3.5 rounded-2xl text-center shadow-xl animate-fade-in">
-            현재 CBT 기간으로 준비 중인 기능입니다.
+            곧 만나요! 지금은 홈·탐색·기록을 먼저 활용해보세요
           </div>
         </div>
       )}
 
-      {/* GNB */}
-      <nav className="flex-shrink-0 h-16 bg-white border-t border-stone-100 flex items-stretch shadow-[0_-4px_20px_rgb(0,0,0,0.05)] z-40">
+      {/* GNB — pb-safe: 시스템 제스처 영역(홈 인디케이터 등) 확보 */}
+      <nav
+        className="flex-shrink-0 bg-white border-t border-stone-100 shadow-[0_-4px_20px_rgb(0,0,0,0.05)] z-40 flex items-stretch"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)', minHeight: '64px' }}
+      >
 
         {/* 홈 */}
         <Link
@@ -54,28 +57,30 @@ export default function BottomNav() {
           <span className="text-[10px] font-bold">탐색</span>
         </Link>
 
-        {/* 기록 — Fake Door */}
-        <button
-          onClick={showFakeDoor}
-          className="flex-1 flex flex-col items-center justify-center gap-0.5 text-stone-400 hover:text-stone-600 transition-colors"
+        {/* 기록 */}
+        <Link
+          href="/record"
+          className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors ${
+            pathname === "/record" ? "text-orange-500" : "text-stone-400 hover:text-stone-600"
+          }`}
         >
-          <IconRecord />
+          <IconRecord active={pathname === "/record"} />
           <span className="text-[10px] font-bold">기록</span>
-        </button>
+        </Link>
 
-        {/* 라운지 — Fake Door */}
+        {/* 라운지 — 준비중 */}
         <button
           onClick={showFakeDoor}
-          className="flex-1 flex flex-col items-center justify-center gap-0.5 text-stone-400 hover:text-stone-600 transition-colors"
+          className="flex-1 flex flex-col items-center justify-center gap-0.5 text-stone-300 transition-colors"
         >
           <IconLounge />
           <span className="text-[10px] font-bold">라운지</span>
         </button>
 
-        {/* 마이 — Fake Door */}
+        {/* 마이 — 준비중 */}
         <button
           onClick={showFakeDoor}
-          className="flex-1 flex flex-col items-center justify-center gap-0.5 text-stone-400 hover:text-stone-600 transition-colors"
+          className="flex-1 flex flex-col items-center justify-center gap-0.5 text-stone-300 transition-colors"
         >
           <IconMy />
           <span className="text-[10px] font-bold">마이</span>
@@ -106,9 +111,9 @@ function IconSearch({ active }: { active: boolean }) {
   )
 }
 
-function IconRecord() {
+function IconRecord({ active }: { active: boolean }) {
   return (
-    <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.5 : 2} strokeLinecap="round" strokeLinejoin="round">
       <line x1="6" y1="20" x2="6" y2="14" />
       <line x1="12" y1="20" x2="12" y2="4" />
       <line x1="18" y1="20" x2="18" y2="10" />
