@@ -13,6 +13,10 @@ export type RoutineFood = {
   baseUnit: "ml" | "slice"
   defaultAmount: number  // 기본 하루 섭취량 (ml 또는 슬라이스 수)
   nutrients: Record<string, number>
+  /** formula 전용: 분유 서브타입 (고신뢰 항목만) */
+  formulaSubtype?: FormulaSubtype
+  /** formula 전용: 원유 동물 기반 (고신뢰 항목만) */
+  baseAnimalType?: "cow" | "goat"
 }
 
 export type SelectedRoutineFood = {
@@ -28,6 +32,8 @@ export const ROUTINE_FOODS: RoutineFood[] = [
     category: "formula",
     baseUnit: "ml",
     defaultAmount: 800,
+    // formulaSubtype: 제품명에 특수분유 지시자 없음 → 설정 안 함 ("standard" 추정 금지)
+    // baseAnimalType: 제품명에 명시 없음 → 설정 안 함 (도메인 지식으로 "cow" 단언 금지)
     nutrients: {
       "칼슘||mg":       56,
       "비타민D||μg":    1.25,
@@ -44,6 +50,8 @@ export const ROUTINE_FOODS: RoutineFood[] = [
     category: "formula",
     baseUnit: "ml",
     defaultAmount: 600,
+    // formulaSubtype: 제품명에 특수분유 지시자 없음 → 설정 안 함
+    // baseAnimalType: 제품명에 명시 없음 → 설정 안 함
     nutrients: {
       "칼슘||mg":       100,
       "비타민D||μg":    1.6,
@@ -60,6 +68,8 @@ export const ROUTINE_FOODS: RoutineFood[] = [
     category: "formula",
     baseUnit: "ml",
     defaultAmount: 700,
+    // formulaSubtype: 제품명에 특수분유 지시자 없음 → 설정 안 함
+    // baseAnimalType: 제품명에 명시 없음 → 설정 안 함
     nutrients: {
       "칼슘||mg":       75,
       "비타민D||μg":    1.1,
@@ -134,27 +144,41 @@ export const CATEGORY_LABEL: Record<RoutineFood["category"], string> = {
 }
 
 // ─── 통합 Product 형식 변환 (향후 Supabase 단일 테이블 마이그레이션 준비) ─────
-import type { Product } from "./types"
+import type { Product, FormulaSubtype } from "./types"
+import {
+  deriveFormulaMetadata,
+  deriveMilkMetadata,
+  deriveCheeseMetadata,
+} from "./metadata_seed"
 
 /**
  * ROUTINE_PRODUCTS — ROUTINE_FOODS를 통합 Product 타입으로 변환한 목록
  * - id: 음수(-1~-N)로 DB products와 충돌 방지
  * - base_unit: "ml" → nutrients는 per 100ml 기준, "장" → per slice 기준
  * - daily_serving_count: 하루 섭취량(ml 또는 장) — 사용자가 수정 가능
+ * - metadata: 고신뢰 항목만 보수적으로 seed (metadata_seed.ts 참조)
  */
-export const ROUTINE_PRODUCTS: Product[] = ROUTINE_FOODS.map((food, i) => ({
-  id: -(i + 1),
-  product_name: food.name,
-  manufacturer: food.brand,
-  functionality: null,
-  precautions: null,
-  daily_serving_count: food.defaultAmount,
-  amount_per_serving: food.baseUnit === "ml" ? 100 : 1,
-  serving_unit: food.baseUnit === "ml" ? "ml" : "장",
-  category: food.category,
-  base_unit: food.baseUnit === "ml" ? ("ml" as const) : ("장" as const),
-  nutrients: Object.entries(food.nutrients).map(([key, value]) => {
-    const [name, unit] = key.split("||")
-    return { name, amount: value, unit }
-  }),
-}))
+export const ROUTINE_PRODUCTS: Product[] = ROUTINE_FOODS.map((food, i) => {
+  const metadata =
+    food.category === "formula" ? deriveFormulaMetadata(food.name, food.brand, food.formulaSubtype, food.baseAnimalType)
+    : food.category === "milk"  ? deriveMilkMetadata(food.name, food.brand)
+    : deriveCheeseMetadata()
+
+  return {
+    id: -(i + 1),
+    product_name: food.name,
+    manufacturer: food.brand,
+    functionality: null,
+    precautions: null,
+    daily_serving_count: food.defaultAmount,
+    amount_per_serving: food.baseUnit === "ml" ? 100 : 1,
+    serving_unit: food.baseUnit === "ml" ? "ml" : "장",
+    category: food.category,
+    base_unit: food.baseUnit === "ml" ? ("ml" as const) : ("장" as const),
+    nutrients: Object.entries(food.nutrients).map(([key, value]) => {
+      const [name, unit] = key.split("||")
+      return { name, amount: value, unit }
+    }),
+    metadata,
+  }
+})

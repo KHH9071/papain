@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useRef } from "react"
 import Link from "next/link"
 import { LineChart, Line, ComposedChart, ReferenceLine, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts"
 import { useAppStore, type GrowthRecord } from "@/lib/store"
@@ -479,6 +479,9 @@ export default function RecordPage() {
     growthRecords, addGrowthRecord, removeGrowthRecord,
   } = useAppStore()
 
+  // 수정 버튼 클릭 시 폼으로 스크롤
+  const formRef = useRef<HTMLDivElement>(null)
+
   // ── 전역 설정 ─────────────────────────────────────────────────────────────
   const [pageTab, setPageTab]         = useState<PageTab>("growth")
   const [nutritionView, setNutritionView] = useState<NutritionView>("daily")
@@ -562,13 +565,14 @@ export default function RecordPage() {
     setHeightInput(""); setWeightInput(""); setErrors({})
   }
 
-  // 목록의 "수정" 버튼 → 해당 기록 값을 폼에 채운다
+  // 목록의 "수정" 버튼 → 해당 기록 값을 폼에 채우고 폼으로 스크롤
   function startEdit(r: GrowthRecord) {
     setLocalMonths(r.monthsOld)
     setMonthInput(String(r.monthsOld))
     setHeightInput(String(r.height))
     setWeightInput(String(r.weight))
     setErrors({})
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
   }
 
   // ── 최신 기록 + 백분위 ────────────────────────────────────────────────────
@@ -704,7 +708,7 @@ export default function RecordPage() {
               </div>
             )}
 
-            <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 flex flex-col gap-3">
+            <div ref={formRef} className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-extrabold text-stone-700">
                   {existingRecord ? `${localMonths}개월 기록 수정` : `${localMonths}개월 기록 추가`}
@@ -715,6 +719,12 @@ export default function RecordPage() {
                   </span>
                 )}
               </div>
+              {/* 기록 대상 월령과 현재 기준 월령이 다를 때 안내 */}
+              {localMonths !== storeMonthsOld && (
+                <p className="text-[10px] font-bold text-stone-400 bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 leading-snug">
+                  현재 기준 <span className="text-orange-500">{storeMonthsOld}개월</span>과 다른 월령으로 기록해요 — Home · 탐색 기준은 바뀌지 않아요
+                </p>
+              )}
               <div className="flex gap-3">
                 <div className="flex-1 flex flex-col gap-1">
                   <label className="text-[10px] font-bold text-stone-500">키 (cm)</label>

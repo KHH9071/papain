@@ -65,6 +65,21 @@ export const useAppStore = create<AppStore>()(
           growthRecords: state.growthRecords.filter((r) => r.monthsOld !== monthsOld),
         })),
     }),
-    { name: "papain-store" }
+    {
+      name: "papain-store",
+      // 앱 시작 시 1회: 구버전 localStorage에 남아 있을 수 있는 중복 monthsOld 기록 정리
+      // (현재 addGrowthRecord는 upsert이므로 신규 중복은 발생하지 않음)
+      onRehydrateStorage: () => (state) => {
+        if (!state?.growthRecords?.length) return
+        const seen = new Map<number, GrowthRecord>()
+        for (const r of state.growthRecords) seen.set(r.monthsOld, r)
+        if (seen.size < state.growthRecords.length) {
+          // 중복 발견 → monthsOld별 마지막 항목만 유지
+          useAppStore.setState({
+            growthRecords: [...seen.values()].sort((a, b) => a.monthsOld - b.monthsOld),
+          })
+        }
+      },
+    }
   )
 )

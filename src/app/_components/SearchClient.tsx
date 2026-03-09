@@ -7,6 +7,14 @@ import { getAgeGroup } from "@/lib/kdri_data"
 import { PERIOD_CONFIG, getNutrientGaps } from "@/lib/nutrition_utils"
 import type { Product, ProductCategory } from "@/lib/types"
 import { ROUTINE_PRODUCTS, CATEGORY_ICON, CATEGORY_LABEL } from "@/lib/routine_foods"
+import {
+  getComparisonCapability,
+  isRoutineProduct,
+} from "@/lib/comparison"
+import {
+  deriveProductMetadata,
+  deriveSupplementSubtype,
+} from "@/lib/metadata_seed"
 
 // ─── 상수 ─────────────────────────────────────────────────────────────────────
 const RECOMMENDED_NUTRIENTS = [
@@ -16,12 +24,20 @@ const PRODUCT_COLORS = [
   "#fb923c", "#fb7185", "#2dd4bf", "#34d399",
   "#fbbf24", "#38bdf8", "#a78bfa", "#818cf8",
 ]
-const ROUTINE_CATEGORIES = new Set<ProductCategory>(["formula", "milk", "cheese"])
 
 type CategoryFilter = "all" | "supplement" | "routine"
 
-// ─── 유사 제품 알고리즘 (기존 유지) ──────────────────────────────────────────
-function getSimilarProducts(current: Product, allProducts: Product[]): Product[] {
+// ─── 유사 제품 알고리즘 ────────────────────────────────────────────────────────
+// 비교 축: nutrient-overlap (영양소 이름 교집합 수, 많을수록 유사)
+// maxCount: 아코디언 내부 미리보기 = 3, 전체 비교 탐색 모드 = 5
+// minOverlap: 공통 성분 0개는 제외 (guardrail — "비슷하다"는 인상 방지)
+// 역량 프로파일: lib/comparison.ts → getComparisonCapability 참조
+function getSimilarProducts(
+  current: Product,
+  allProducts: Product[],
+  maxCount = 5,
+  minOverlap = 1,
+): { product: Product; overlap: number }[] {
   const currentNames = new Set(current.nutrients.map((n) => n.name))
   return allProducts
     .filter((p) => p.id !== current.id && p.category === current.category)
@@ -29,9 +45,9 @@ function getSimilarProducts(current: Product, allProducts: Product[]): Product[]
       product: p,
       overlap: p.nutrients.filter((n) => currentNames.has(n.name)).length,
     }))
+    .filter(({ overlap }) => overlap >= minOverlap)
     .sort((a, b) => b.overlap - a.overlap)
-    .slice(0, 3)
-    .map(({ product }) => product)
+    .slice(0, maxCount)
 }
 
 // ─── 용량 입력 모달 (기존 유지) ───────────────────────────────────────────────
@@ -102,9 +118,10 @@ function VolumeModal({
   )
 }
 
-// ─── 제품 카드 (기존 유지) ────────────────────────────────────────────────────
+// ─── 제품 카드 ────────────────────────────────────────────────────────────────
 function MobileProductCard({
-  product, selected, onToggle, onRoutineTap, expanded, onToggleExpand, color, allProducts,
+  product, selected, onToggle, onRoutineTap, expanded, onToggleExpand,
+  color, allProducts, onSetAsReference, onStageFilter,
 }: {
   product: Product
   selected: boolean
@@ -114,11 +131,19 @@ function MobileProductCard({
   onToggleExpand: () => void
   color: string | undefined
   allProducts: Product[]
+  onSetAsReference: (product: Product) => void
+  onStageFilter: (stage: number) => void
 }) {
-  const isRoutine   = ROUTINE_CATEGORIES.has(product.category ?? ("" as ProductCategory))
+  const isRoutine        = isRoutineProduct(product)
+  const capability       = getComparisonCapability(product)
+  const canCompare       = capability.activeAxes.includes("nutrient-overlap")
+  const formulaStage     = product.metadata?.formulaStage
+  const canFilterByStage = capability.activeAxes.includes("stage") && !!formulaStage
+
+  // 아코디언 내 미리보기는 3개 고정, nutrient-overlap 축이 없는 제품은 빈 배열
   const similarList = useMemo(
-    () => (expanded ? getSimilarProducts(product, allProducts) : []),
-    [expanded, product, allProducts]
+    () => (expanded && canCompare ? getSimilarProducts(product, allProducts, 3) : []),
+    [expanded, canCompare, product, allProducts]
   )
 
   const handleMainTap = () => {
@@ -126,8 +151,11 @@ function MobileProductCard({
     else onToggle()
   }
 
+  // formula: "분유 · X단계" 배지, milk/cheese: 카테고리 레이블
   const displayLabel = isRoutine
-    ? (product.category ? CATEGORY_LABEL[product.category as "formula" | "milk" | "cheese"] : "")
+    ? product.category === "formula" && formulaStage
+      ? `분유 · ${formulaStage}단계`
+      : (product.category ? CATEGORY_LABEL[product.category as "formula" | "milk" | "cheese"] : "")
     : null
 
   return (
@@ -243,6 +271,14 @@ function MobileProductCard({
                 </span>
               </div>
             )}
+            {product.metadata?.derivedAgeRangeMonths && (
+              <div className="flex justify-between items-center pb-2 border-b border-stone-100">
+                <span className="text-[11px] font-bold text-stone-400">단계 기준 예상 월령</span>
+                <span className="text-xs font-bold text-stone-500">
+                  {product.metadata.derivedAgeRangeMonths[0]}~{product.metadata.derivedAgeRangeMonths[1]}개월
+                </span>
+              </div>
+            )}
             {product.nutrients.map((n, i) => (
               <div key={i} className="flex justify-between items-center">
                 <span className="text-[11px] font-bold text-stone-500">{n.name}</span>
@@ -251,40 +287,77 @@ function MobileProductCard({
             ))}
           </div>
 
-          {/* 유사 성분 제품 (아코디언 내부 — 상단 배너에서도 진입 가능) */}
+          {/* 탐색 진입 버튼 — activeAxes 기반 3-way 분기
+              · nutrient-overlap: 건기식 → 비슷한 제품 비교 탐색
+              · stage: formula → 단계 필터로 좁혀보기
+              · 없음(milk/cheese): 현재 비교 방식 미지원 안내 */}
+          {canCompare ? (
+            <button
+              onClick={() => onSetAsReference(product)}
+              className="w-full flex items-center justify-between bg-stone-100 hover:bg-orange-50 hover:border-orange-200 border border-transparent rounded-xl px-3 py-2.5 mb-3 transition-colors group"
+            >
+              <span className="text-[11px] font-extrabold text-stone-500 group-hover:text-orange-600">
+                이 제품 기준으로 비슷한 제품 살펴보기
+              </span>
+              <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className="text-stone-400 group-hover:text-orange-500">
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </button>
+          ) : canFilterByStage ? (
+            <button
+              onClick={() => onStageFilter(formulaStage!)}
+              className="w-full flex items-center justify-between bg-blue-50 hover:bg-blue-100 border border-blue-100 rounded-xl px-3 py-2.5 mb-3 transition-colors group"
+            >
+              <span className="text-[11px] font-extrabold text-blue-500">
+                {formulaStage}단계 분유만 보기
+              </span>
+              <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className="text-blue-400">
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </button>
+          ) : capability.unavailableReason ? (
+            <div className="flex items-start gap-1.5 bg-stone-50 border border-stone-100 rounded-xl px-3 py-2 mb-3">
+              <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="#a8a29e" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-px">
+                <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              <p className="text-[10px] font-bold text-stone-400 leading-snug">
+                {capability.unavailableReason}
+              </p>
+            </div>
+          ) : null}
+
+          {/* 유사 성분 제품 미리보기 (아코디언 내, 건기식만) */}
           {similarList.length > 0 && (
-            <div className="mt-1">
-              <p className="text-[10px] font-extrabold text-stone-400 mb-2 flex items-center gap-1">
-                <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" />
-                </svg>
-                비슷한 성분의 다른 제품 보기
+            <div>
+              <p className="text-[10px] font-extrabold text-stone-400 mb-2">
+                성분 기준 비슷한 제품 미리보기
               </p>
               <div className="flex flex-col gap-1.5">
-                {similarList.map((sim) => {
-                  const overlap = sim.nutrients.filter((n) =>
-                    product.nutrients.some((pn) => pn.name === n.name)
-                  ).length
-                  return (
-                    <div
-                      key={sim.id}
-                      className="flex items-center gap-2 bg-white rounded-xl border border-stone-100 px-3 py-2"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[10px] font-bold text-stone-400 truncate">{sim.manufacturer}</p>
-                        <p className="text-xs font-extrabold text-stone-700 truncate">{sim.product_name}</p>
-                        <p className="text-[9px] font-bold text-emerald-500 mt-0.5">성분 {overlap}개 일치</p>
-                      </div>
-                      <div className="flex flex-wrap gap-1 max-w-[100px]">
+                {similarList.map(({ product: sim, overlap }) => (
+                  <button
+                    key={sim.id}
+                    onClick={() => onSetAsReference(sim)}
+                    className="flex items-center gap-2 bg-white rounded-xl border border-stone-100 hover:border-orange-200 hover:bg-orange-50/50 px-3 py-2 transition-colors text-left w-full group"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] font-bold text-stone-400 truncate">{sim.manufacturer}</p>
+                      <p className="text-xs font-extrabold text-stone-700 group-hover:text-orange-700 truncate">{sim.product_name}</p>
+                      <p className="text-[9px] font-bold text-emerald-500 mt-0.5">성분 {overlap}개 일치</p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      <div className="flex flex-wrap gap-0.5 justify-end max-w-[90px]">
                         {sim.nutrients.slice(0, 3).map((n, i) => (
-                          <span key={i} className="text-[9px] font-bold text-stone-500 bg-stone-50 px-1 py-0.5 rounded">
+                          <span key={i} className="text-[9px] font-bold text-stone-400 bg-stone-50 px-1 py-0.5 rounded">
                             {n.name}
                           </span>
                         ))}
                       </div>
+                      <span className="text-[9px] font-bold text-orange-400 group-hover:text-orange-600">
+                        기준으로 설정 →
+                      </span>
                     </div>
-                  )
-                })}
+                  </button>
+                ))}
               </div>
             </div>
           )}
@@ -301,16 +374,20 @@ function SearchContextBanner({
   monthsOld,
   selectedProducts,
   referenceProduct,
+  stageFilter,
   onNutrientClick,
   onReferenceClick,
   onClearReference,
+  onClearStage,
 }: {
   monthsOld: number
   selectedProducts: Product[]
   referenceProduct: Product | null
+  stageFilter: number | null
   onNutrientClick: (name: string) => void
   onReferenceClick: (product: Product) => void
   onClearReference: () => void
+  onClearStage: () => void
 }) {
   const ageGroup = getAgeGroup(monthsOld)
   const config   = PERIOD_CONFIG[ageGroup]
@@ -322,41 +399,95 @@ function SearchContextBanner({
   )
 
   // 건기식만 대안 탐색 기준으로 활용 (루틴 식품 제외)
-  const supplementsInDesign = selectedProducts.filter(
-    (p) => !ROUTINE_CATEGORIES.has(p.category ?? ("" as ProductCategory))
-  )
+  const supplementsInDesign = selectedProducts.filter((p) => !isRoutineProduct(p))
 
   // 포커스 칩: 아직 살펴보지 않은 영양소 → 없으면 시기별 기본 포커스
   const focusChips =
     hasProducts && gaps.underNames.length > 0 ? gaps.underNames : config.focus
 
-  // ── 대안 탐색 모드 뷰 ────────────────────────────────────────────────────
-  if (referenceProduct) {
+  // ── 우선순위: referenceProduct > stageFilter > default ──────────────────
+  // referenceProduct와 stageFilter는 handleReferenceClick/handleStageFilter에서
+  // 서로를 초기화하므로 동시에 활성화되지 않음 — 여기서는 방어적으로 순서만 정의
+
+  // ── stage 필터 모드 뷰 ───────────────────────────────────────────────────
+  if (stageFilter !== null && !referenceProduct) {
     return (
-      <div className="mx-0 mb-3 bg-orange-50/70 border border-orange-200 rounded-2xl px-4 py-3">
+      <div className="mx-0 mb-3 bg-blue-50/70 border border-blue-200 rounded-2xl px-4 py-3">
         <div className="flex items-center justify-between mb-1.5">
-          <span className="text-[11px] font-extrabold text-orange-500">
-            비슷한 성분의 다른 제품 탐색 중
+          <span className="text-[11px] font-extrabold text-blue-500">
+            {stageFilter}단계 분유 살펴보는 중
           </span>
           <button
-            onClick={onClearReference}
-            className="w-5 h-5 flex items-center justify-center rounded-full bg-orange-100 text-orange-400 hover:bg-orange-200 transition-colors"
-            aria-label="대안 탐색 종료"
+            onClick={onClearStage}
+            className="w-5 h-5 flex items-center justify-center rounded-full bg-blue-100 text-blue-400 hover:bg-blue-200 transition-colors"
+            aria-label="단계 필터 해제"
           >
             <svg width={10} height={10} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
-        <div className="flex items-center gap-1.5">
-          <span className="text-[10px] font-bold text-stone-400">기준 제품</span>
-          <span className="text-[11px] font-extrabold text-stone-700 bg-white border border-orange-200 rounded-lg px-2 py-0.5 max-w-[200px] truncate">
+        <div className="flex items-start gap-1 bg-stone-50 border border-stone-100 rounded-lg px-2 py-1.5">
+          <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="#a8a29e" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-px">
+            <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          <p className="text-[10px] text-stone-400 font-bold leading-snug">
+            단계 기준 탐색이에요 · 제품 간 우열 비교가 아니며 구매·수유 판단의 근거로 삼지 마세요
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // ── 비교 기준 모드 뷰 ────────────────────────────────────────────────────
+  if (referenceProduct) {
+    // 비교 기준 성분: referenceProduct의 영양소명 → 사용자에게 "무엇 기준으로 비슷한지" 맥락 제공
+    const basisNutrients = referenceProduct.nutrients.slice(0, 4).map((n) => n.name)
+    return (
+      <div className="mx-0 mb-3 bg-orange-50/70 border border-orange-200 rounded-2xl px-4 py-3">
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="text-[11px] font-extrabold text-orange-500">
+            비슷한 성분의 다른 제품 살펴보는 중
+          </span>
+          <button
+            onClick={onClearReference}
+            className="w-5 h-5 flex items-center justify-center rounded-full bg-orange-100 text-orange-400 hover:bg-orange-200 transition-colors"
+            aria-label="비교 탐색 종료"
+          >
+            <svg width={10} height={10} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        {/* 기준 제품명 */}
+        <div className="flex items-center gap-1.5 mb-2">
+          <span className="text-[10px] font-bold text-stone-400 shrink-0">기준</span>
+          <span className="text-[11px] font-extrabold text-stone-700 bg-white border border-orange-200 rounded-lg px-2 py-0.5 truncate max-w-[220px]">
             {referenceProduct.product_name}
           </span>
         </div>
-        <p className="text-[11px] text-stone-400 font-medium mt-1.5">
-          같은 성분이 포함된 다른 제품을 비교해보세요
-        </p>
+        {/* 비교 기준 성분 태그 */}
+        {basisNutrients.length > 0 && (
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-[9px] font-bold text-stone-400 shrink-0">성분 기준</span>
+            {basisNutrients.map((name) => (
+              <span key={name} className="text-[9px] font-extrabold text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded-full">
+                {name}
+              </span>
+            ))}
+            {referenceProduct.nutrients.length > 4 && (
+              <span className="text-[9px] font-bold text-stone-300">+{referenceProduct.nutrients.length - 4}</span>
+            )}
+          </div>
+        )}
+        <div className="flex items-start gap-1 mt-1.5 bg-stone-50 border border-stone-100 rounded-lg px-2 py-1.5">
+          <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="#a8a29e" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-px">
+            <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          <p className="text-[10px] text-stone-400 font-bold leading-snug">
+            공통 성분 기준 탐색이에요 · 제품 간 우열 비교가 아니며 구매·복용 판단의 근거로 삼지 마세요
+          </p>
+        </div>
       </div>
     )
   }
@@ -377,7 +508,7 @@ function SearchContextBanner({
       </div>
 
       {/* 축 A: 영양소 기반 탐색 */}
-      <div className={supplementsInDesign.length > 0 ? "mb-2.5" : ""}>
+      <div className={supplementsInDesign.length > 0 ? "mb-2.5" : "mb-0"}>
         <p className="text-[10px] font-bold text-stone-400 mb-1.5">
           {hasProducts && gaps.underNames.length > 0
             ? "아직 설계 전인 영양소 — 탭해서 살펴보기"
@@ -396,11 +527,11 @@ function SearchContextBanner({
         </div>
       </div>
 
-      {/* 축 B: 대안 제품 탐색 (건기식 설계 중일 때만) */}
+      {/* 축 B: 현재 설계 제품 기반 대안 탐색 */}
       {supplementsInDesign.length > 0 && (
         <div className="pt-2.5 border-t border-orange-100">
           <p className="text-[10px] font-bold text-stone-400 mb-1.5">
-            현재 설계 제품의 비슷한 대안 보기
+            현재 설계 제품을 기준으로 비슷한 제품 살펴보기
           </p>
           <div className="flex gap-1.5 flex-wrap">
             {supplementsInDesign.map((p) => (
@@ -413,6 +544,16 @@ function SearchContextBanner({
               </button>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* 축 B 진입 힌트 (설계 제품 없을 때): 검색으로 기준 제품 설정 안내 */}
+      {!hasProducts && (
+        <div className="pt-2.5 border-t border-orange-100 mt-2.5">
+          <p className="text-[10px] font-bold text-stone-400 leading-snug">
+            알고 있는 제품명을 검색한 뒤 펼쳐서{" "}
+            <span className="text-orange-500">비슷한 제품 살펴보기</span>로 비교 탐색을 시작할 수 있어요
+          </p>
         </div>
       )}
     </div>
@@ -437,12 +578,14 @@ export default function SearchClient({
   const [isSearching, setIsSearching]       = useState(false)
   const [expandedIds, setExpandedIds]       = useState<Set<number>>(new Set())
   const [volumeModal, setVolumeModal]       = useState<Product | null>(null)
-  // 대안 탐색 기준 제품 (Axis B)
+  // 대안 탐색 기준 제품 (Axis B — supplement nutrient-overlap)
   const [referenceProduct, setReferenceProduct] = useState<Product | null>(null)
+  // 분유 단계 필터 (Axis stage — formula only, null=전체)
+  const [stageFilter, setStageFilter]           = useState<number | null>(null)
 
   const colorMap = new Map(
     selectedProducts
-      .filter((p) => !ROUTINE_CATEGORIES.has(p.category ?? ("" as ProductCategory)))
+      .filter((p) => !isRoutineProduct(p))
       .map((p, i) => [p.id, PRODUCT_COLORS[i % PRODUCT_COLORS.length]])
   )
 
@@ -461,7 +604,7 @@ export default function SearchClient({
     }
   }, [initialNutrient])
 
-  // 텍스트 검색 시작 → 대안 탐색 모드 해제
+  // 텍스트 검색 시작 → 기준 제품 비교 모드 해제 (stageFilter는 검색과 공존 가능)
   useEffect(() => {
     if (searchQuery) setReferenceProduct(null)
   }, [searchQuery])
@@ -487,19 +630,25 @@ export default function SearchClient({
   }, [debouncedQuery, initialProducts])
 
   // ── 전체 제품 풀 (유사 제품 계산용) ─────────────────────────────────────
+  // supplement DB 제품에 고신뢰 metadata/subtype을 보수적으로 seed.
+  // ROUTINE_PRODUCTS는 routine_foods.ts에서 이미 seed됨.
   const allProductsPool = useMemo(() => {
-    const supplements = dbProducts.map((p) => ({
-      ...p,
-      category: p.category ?? ("supplement" as ProductCategory),
-    }))
+    const supplements = dbProducts.map((p) => {
+      const withCategory = { ...p, category: p.category ?? ("supplement" as ProductCategory) }
+      return {
+        ...withCategory,
+        subtype: withCategory.subtype ?? deriveSupplementSubtype(withCategory),
+        metadata: deriveProductMetadata(withCategory),
+      }
+    })
     return [...supplements, ...ROUTINE_PRODUCTS]
   }, [dbProducts])
 
   // ── 표시할 제품 목록 ──────────────────────────────────────────────────────
   const displayedProducts = useMemo(() => {
-    // 대안 탐색 모드: 기준 제품과 유사한 제품 목록
+    // 비교 기준 모드: 기준 제품과 유사한 제품 최대 5개
     if (referenceProduct) {
-      return getSimilarProducts(referenceProduct, allProductsPool)
+      return getSimilarProducts(referenceProduct, allProductsPool, 5).map(({ product }) => product)
     }
 
     const term = debouncedQuery.trim().toLowerCase()
@@ -525,8 +674,28 @@ export default function SearchClient({
       combined = combined.filter((p) => p.nutrients.some((n) => n.name === activeNutrient))
     }
 
+    // 단계 필터: formula 제품만 해당 단계로 좁힘. milk/cheese/supplement는 영향 없음.
+    if (stageFilter !== null) {
+      combined = combined.filter(
+        (p) => p.category !== "formula" || p.metadata?.formulaStage === stageFilter,
+      )
+    }
+
     return combined
-  }, [referenceProduct, dbProducts, debouncedQuery, categoryFilter, activeNutrient, allProductsPool])
+  }, [referenceProduct, dbProducts, debouncedQuery, categoryFilter, activeNutrient, stageFilter, allProductsPool])
+
+  // ── formula 단계별 제품 수 (stage 칩 개수 표시용) ────────────────────────
+  // allProductsPool은 dbProducts 기반으로 재계산되므로 useMemo 의존성에 포함
+  const stageProductCounts = useMemo(() => {
+    const counts: Record<number, number> = {}
+    for (const p of allProductsPool) {
+      if (p.category === "formula" && p.metadata?.formulaStage) {
+        const s = p.metadata.formulaStage
+        counts[s] = (counts[s] ?? 0) + 1
+      }
+    }
+    return counts
+  }, [allProductsPool])
 
   // ── 영양소 필터 순서: 아직 살펴보지 않은 영양소를 앞으로 ────────────────
   const gaps = useMemo(
@@ -573,12 +742,19 @@ export default function SearchClient({
   const handleReferenceClick = (product: Product) => {
     setActiveNutrient(null)
     setSearchQuery("")
+    setStageFilter(null)
     setReferenceProduct(product)
   }
 
-  const routineSelectedCount = selectedProducts.filter((p) =>
-    ROUTINE_CATEGORIES.has(p.category ?? ("" as ProductCategory))
-  ).length
+  // formula 카드 아코디언에서 "X단계 분유만 보기" 클릭 시
+  const handleStageFilter = (stage: number) => {
+    setActiveNutrient(null)
+    setReferenceProduct(null)
+    setCategoryFilter("routine")     // formula가 보이는 탭으로 자동 이동
+    setStageFilter((prev) => (prev === stage ? null : stage))   // 같은 단계 재클릭 → 해제
+  }
+
+  const routineSelectedCount = selectedProducts.filter(isRoutineProduct).length
 
   return (
     <div className="h-full flex flex-col bg-[#FFFBF7]">
@@ -608,9 +784,11 @@ export default function SearchClient({
               monthsOld={monthsOld}
               selectedProducts={selectedProducts}
               referenceProduct={referenceProduct}
+              stageFilter={stageFilter}
               onNutrientClick={handleNutrientClick}
               onReferenceClick={handleReferenceClick}
               onClearReference={() => setReferenceProduct(null)}
+              onClearStage={() => setStageFilter(null)}
             />
           </>
         )}
@@ -651,13 +829,26 @@ export default function SearchClient({
         {/* 카테고리 탭 + 모드 표시 */}
         <div className="flex items-center gap-2 mb-3">
           {referenceProduct ? (
-            // 대안 탐색 모드일 때 탭 대신 모드 인디케이터
+            // 건기식 비교 탐색 모드
             <div className="flex items-center gap-2 w-full">
               <span className="text-[11px] font-bold text-orange-500 bg-orange-50 border border-orange-200 px-3 py-1.5 rounded-xl">
                 비슷한 제품 탐색 중
               </span>
               <button
                 onClick={() => setReferenceProduct(null)}
+                className="ml-auto text-[11px] font-bold text-stone-400 hover:text-stone-600"
+              >
+                전체 목록으로
+              </button>
+            </div>
+          ) : stageFilter !== null ? (
+            // 분유 단계 필터 모드
+            <div className="flex items-center gap-2 w-full">
+              <span className="text-[11px] font-bold text-blue-500 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-xl">
+                {stageFilter}단계 분유 보는 중
+              </span>
+              <button
+                onClick={() => setStageFilter(null)}
                 className="ml-auto text-[11px] font-bold text-stone-400 hover:text-stone-600"
               >
                 전체 목록으로
@@ -687,6 +878,40 @@ export default function SearchClient({
             ))
           )}
         </div>
+
+        {/* 단계 필터 — formula 맥락에서만 표시
+            조건: "routine" 탭이거나 이미 stageFilter가 켜진 상태 (formula 탐색 의도 명확)
+            "all" 탭에서는 supplement와 혼재해 stage 칩이 맥락 밖으로 느껴지므로 숨김 */}
+        {!referenceProduct && !debouncedQuery &&
+          (categoryFilter === "routine" || stageFilter !== null) && (
+          <div className="flex items-center gap-1.5 mb-2 overflow-x-auto scrollbar-hide">
+            <span className="text-[10px] font-bold text-stone-400 shrink-0">분유 단계</span>
+            {[1, 2, 3].map((stage) => {
+              const count = stageProductCounts[stage] ?? 0
+              return (
+                <button
+                  key={stage}
+                  onClick={() => handleStageFilter(stage)}
+                  className={`px-2.5 py-1 rounded-xl text-[12px] font-bold whitespace-nowrap transition-colors shrink-0 ${
+                    stageFilter === stage
+                      ? "bg-blue-500 text-white"
+                      : "bg-white border border-stone-200 text-stone-500 hover:border-blue-300 hover:text-blue-500"
+                  }`}
+                >
+                  {stage}단계{count > 0 ? `(${count})` : ""}
+                </button>
+              )
+            })}
+            {stageFilter !== null && (
+              <button
+                onClick={() => setStageFilter(null)}
+                className="text-[11px] font-bold text-stone-400 hover:text-stone-600 shrink-0"
+              >
+                전체
+              </button>
+            )}
+          </div>
+        )}
 
         {/* 영양소 필터 — 아직 살펴보지 않은 영양소를 앞으로, 해당 항목에 점 표시 */}
         {!referenceProduct && (
@@ -727,17 +952,29 @@ export default function SearchClient({
       {/* ── 제품 목록 ── */}
       <div className="flex-1 overflow-y-auto scrollbar-hide">
         <div className="px-5 pb-4 pt-3 flex flex-col gap-3">
-          {/* 대안 탐색 결과 헤더 */}
+          {/* 모드별 결과 헤더 */}
           {referenceProduct && displayedProducts.length > 0 && (
             <p className="text-[11px] font-bold text-stone-400 text-center py-1">
-              {displayedProducts.length}개의 비슷한 제품을 찾았어요
+              성분 기준 비슷한 제품 {displayedProducts.length}개 · 탭해서 기준 제품으로 전환할 수 있어요
+            </p>
+          )}
+          {stageFilter !== null && !referenceProduct && displayedProducts.length > 0 && (
+            <p className="text-[11px] font-bold text-blue-400 text-center py-1">
+              {stageFilter}단계 분유 {displayedProducts.filter((p) => p.category === "formula").length}개 포함
             </p>
           )}
 
           {displayedProducts.length === 0 ? (
             <div className="text-center py-10 text-stone-400 text-sm font-bold">
               {referenceProduct
-                ? "비슷한 성분의 다른 제품을 찾지 못했어요"
+                ? (() => {
+                    const cap = getComparisonCapability(referenceProduct)
+                    return !cap.activeAxes.includes("nutrient-overlap")
+                      ? cap.unavailableReason ?? "현재 이 카테고리는 성분 기준 비교를 지원하지 않아요"
+                      : "공통 성분이 있는 다른 제품을 찾지 못했어요"
+                  })()
+                : stageFilter !== null
+                ? `${stageFilter}단계 분유 제품이 없어요`
                 : activeNutrient
                 ? `"${activeNutrient}" 성분이 포함된 제품이 없습니다`
                 : searchQuery
@@ -750,6 +987,7 @@ export default function SearchClient({
                   setActiveNutrient(null)
                   setCategoryFilter("all")
                   setReferenceProduct(null)
+                  setStageFilter(null)
                 }}
               >
                 전체 제품 보기
@@ -767,6 +1005,8 @@ export default function SearchClient({
                 onToggleExpand={() => toggleExpand(product.id)}
                 color={colorMap.get(product.id)}
                 allProducts={allProductsPool}
+                onSetAsReference={handleReferenceClick}
+                onStageFilter={handleStageFilter}
               />
             ))
           )}
