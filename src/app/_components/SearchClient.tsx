@@ -561,16 +561,27 @@ function SearchContextBanner({
 }
 
 // ─── 메인 컴포넌트 ────────────────────────────────────────────────────────────
+// URL category param → CategoryFilter 매핑
+// formula/milk/cheese/routine → "routine", supplement → "supplement", 그 외 → "all"
+function resolveInitialCategory(category: string | undefined): CategoryFilter {
+  if (!category) return "all"
+  if (category === "supplement") return "supplement"
+  if (["formula", "milk", "cheese", "routine"].includes(category)) return "routine"
+  return "all"
+}
+
 export default function SearchClient({
   initialProducts,
   initialNutrient,
+  initialCategory,
 }: {
   initialProducts: Product[]
   initialNutrient?: string
+  initialCategory?: string
 }) {
   const { selectedProducts, monthsOld, toggleProduct, setProductVolume } = useAppStore()
 
-  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all")
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>(() => resolveInitialCategory(initialCategory))
   const [searchQuery, setSearchQuery]       = useState("")
   const [debouncedQuery, setDebouncedQuery] = useState("")
   const [activeNutrient, setActiveNutrient] = useState<string | null>(null)
@@ -594,6 +605,12 @@ export default function SearchClient({
     const t = setTimeout(() => setDebouncedQuery(searchQuery), 300)
     return () => clearTimeout(t)
   }, [searchQuery])
+
+  // 외부 진입(Home) 맥락 — initialCategory 변경 시 탭 동기화
+  // 사용자가 탭을 직접 클릭해 변경할 수 있으며, 강제 고정이 아님
+  useEffect(() => {
+    setCategoryFilter(resolveInitialCategory(initialCategory))
+  }, [initialCategory])
 
   // 외부 진입(Home/Record) 맥락 — initialNutrient 변경 시 필터 동기화
   // 사용자가 "전체보기" 클릭 등으로 직접 해제할 수 있으며, 강제 고정이 아님
