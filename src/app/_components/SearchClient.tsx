@@ -367,195 +367,44 @@ function MobileProductCard({
   )
 }
 
-// ─── 컨텍스트 배너 ────────────────────────────────────────────────────────────
-// 탐색의 맥락(왜 지금 이걸 볼까)을 제공하는 상단 영역.
-// 의료적 결론이나 처방처럼 읽히지 않도록 "탐색/살펴보기/참고" 톤을 유지합니다.
+// ─── 컨텍스트 배너 (축약형) ──────────────────────────────────────────────────
+// 탐색 맥락을 1줄로 요약 — 월령/시기 + 살펴볼 영양소 칩
 function SearchContextBanner({
   monthsOld,
   selectedProducts,
-  referenceProduct,
-  stageFilter,
   onNutrientClick,
-  onReferenceClick,
-  onClearReference,
-  onClearStage,
 }: {
   monthsOld: number
   selectedProducts: Product[]
-  referenceProduct: Product | null
-  stageFilter: number | null
   onNutrientClick: (name: string) => void
-  onReferenceClick: (product: Product) => void
-  onClearReference: () => void
-  onClearStage: () => void
 }) {
   const ageGroup = getAgeGroup(monthsOld)
   const config   = PERIOD_CONFIG[ageGroup]
-
-  const hasProducts = selectedProducts.length > 0
-  const gaps        = useMemo(
+  const gaps     = useMemo(
     () => getNutrientGaps(selectedProducts, monthsOld),
     [selectedProducts, monthsOld]
   )
+  const hasProducts = selectedProducts.length > 0
+  const focusChips  =
+    hasProducts && gaps.underNames.length > 0
+      ? gaps.underNames.slice(0, 4)
+      : config.focus.slice(0, 4)
 
-  // 건기식만 대안 탐색 기준으로 활용 (루틴 식품 제외)
-  const supplementsInDesign = selectedProducts.filter((p) => !isRoutineProduct(p))
-
-  // 포커스 칩: 아직 살펴보지 않은 영양소 → 없으면 시기별 기본 포커스
-  const focusChips =
-    hasProducts && gaps.underNames.length > 0 ? gaps.underNames : config.focus
-
-  // ── 우선순위: referenceProduct > stageFilter > default ──────────────────
-  // referenceProduct와 stageFilter는 handleReferenceClick/handleStageFilter에서
-  // 서로를 초기화하므로 동시에 활성화되지 않음 — 여기서는 방어적으로 순서만 정의
-
-  // ── stage 필터 모드 뷰 ───────────────────────────────────────────────────
-  if (stageFilter !== null && !referenceProduct) {
-    return (
-      <div className="mx-0 mb-3 bg-blue-50/70 border border-blue-200 rounded-2xl px-4 py-3">
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="text-[11px] font-extrabold text-blue-500">
-            {stageFilter}단계 분유 살펴보는 중
-          </span>
-          <button
-            onClick={onClearStage}
-            className="w-5 h-5 flex items-center justify-center rounded-full bg-blue-100 text-blue-400 hover:bg-blue-200 transition-colors"
-            aria-label="단계 필터 해제"
-          >
-            <svg width={10} height={10} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        <div className="flex items-start gap-1 bg-stone-50 border border-stone-100 rounded-lg px-2 py-1.5">
-          <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="#a8a29e" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-px">
-            <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
-          </svg>
-          <p className="text-[10px] text-stone-400 font-bold leading-snug">
-            단계 기준 탐색이에요 · 제품 간 우열 비교가 아니며 구매·수유 판단의 근거로 삼지 마세요
-          </p>
-        </div>
-      </div>
-    )
-  }
-
-  // ── 비교 기준 모드 뷰 ────────────────────────────────────────────────────
-  if (referenceProduct) {
-    // 비교 기준 성분: referenceProduct의 영양소명 → 사용자에게 "무엇 기준으로 비슷한지" 맥락 제공
-    const basisNutrients = referenceProduct.nutrients.slice(0, 4).map((n) => n.name)
-    return (
-      <div className="mx-0 mb-3 bg-orange-50/70 border border-orange-200 rounded-2xl px-4 py-3">
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="text-[11px] font-extrabold text-orange-500">
-            비슷한 성분의 다른 제품 살펴보는 중
-          </span>
-          <button
-            onClick={onClearReference}
-            className="w-5 h-5 flex items-center justify-center rounded-full bg-orange-100 text-orange-400 hover:bg-orange-200 transition-colors"
-            aria-label="비교 탐색 종료"
-          >
-            <svg width={10} height={10} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        {/* 기준 제품명 */}
-        <div className="flex items-center gap-1.5 mb-2">
-          <span className="text-[10px] font-bold text-stone-400 shrink-0">기준</span>
-          <span className="text-[11px] font-extrabold text-stone-700 bg-white border border-orange-200 rounded-lg px-2 py-0.5 truncate max-w-[220px]">
-            {referenceProduct.product_name}
-          </span>
-        </div>
-        {/* 비교 기준 성분 태그 */}
-        {basisNutrients.length > 0 && (
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-[9px] font-bold text-stone-400 shrink-0">성분 기준</span>
-            {basisNutrients.map((name) => (
-              <span key={name} className="text-[9px] font-extrabold text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded-full">
-                {name}
-              </span>
-            ))}
-            {referenceProduct.nutrients.length > 4 && (
-              <span className="text-[9px] font-bold text-stone-300">+{referenceProduct.nutrients.length - 4}</span>
-            )}
-          </div>
-        )}
-        <div className="flex items-start gap-1 mt-1.5 bg-stone-50 border border-stone-100 rounded-lg px-2 py-1.5">
-          <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="#a8a29e" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-px">
-            <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
-          </svg>
-          <p className="text-[10px] text-stone-400 font-bold leading-snug">
-            공통 성분 기준 탐색이에요 · 제품 간 우열 비교가 아니며 구매·복용 판단의 근거로 삼지 마세요
-          </p>
-        </div>
-      </div>
-    )
-  }
-
-  // ── 기본 컨텍스트 뷰 ─────────────────────────────────────────────────────
   return (
-    <div className="mb-3 bg-orange-50/70 border border-orange-100 rounded-2xl px-4 py-3">
-      {/* 헤더 */}
-      <div className="flex items-center gap-1.5 mb-2">
-        <span className="text-[11px] font-extrabold text-orange-500">
-          {monthsOld}개월 · {config.period}
-        </span>
-        {hasProducts && (gaps.underNames.length > 0 || gaps.exceededNames.length > 0) && (
-          <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full">
-            살펴볼 것 있어요
-          </span>
-        )}
-      </div>
-
-      {/* 축 A: 영양소 기반 탐색 */}
-      <div className={supplementsInDesign.length > 0 ? "mb-2.5" : "mb-0"}>
-        <p className="text-[10px] font-bold text-stone-400 mb-1.5">
-          {hasProducts && gaps.underNames.length > 0
-            ? "아직 설계 전인 영양소 — 탭해서 살펴보기"
-            : "이 시기 많이 살펴보는 영양소"}
-        </p>
-        <div className="flex gap-1.5 flex-wrap">
-          {focusChips.map((name) => (
-            <button
-              key={name}
-              onClick={() => onNutrientClick(name)}
-              className="text-[10px] font-extrabold text-orange-600 bg-orange-100 px-2.5 py-1 rounded-full hover:bg-orange-200 active:bg-orange-300 transition-colors"
-            >
-              {name}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* 축 B: 현재 설계 제품 기반 대안 탐색 */}
-      {supplementsInDesign.length > 0 && (
-        <div className="pt-2.5 border-t border-orange-100">
-          <p className="text-[10px] font-bold text-stone-400 mb-1.5">
-            현재 설계 제품을 기준으로 비슷한 제품 살펴보기
-          </p>
-          <div className="flex gap-1.5 flex-wrap">
-            {supplementsInDesign.map((p) => (
-              <button
-                key={p.id}
-                onClick={() => onReferenceClick(p)}
-                className="text-[10px] font-extrabold text-stone-600 bg-white border border-stone-200 px-2.5 py-1 rounded-full hover:border-orange-300 hover:text-orange-600 active:bg-orange-50 transition-colors max-w-[160px] truncate"
-              >
-                {p.product_name}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* 축 B 진입 힌트 (설계 제품 없을 때): 검색으로 기준 제품 설정 안내 */}
-      {!hasProducts && (
-        <div className="pt-2.5 border-t border-orange-100 mt-2.5">
-          <p className="text-[10px] font-bold text-stone-400 leading-snug">
-            알고 있는 제품명을 검색한 뒤 펼쳐서{" "}
-            <span className="text-orange-500">비슷한 제품 살펴보기</span>로 비교 탐색을 시작할 수 있어요
-          </p>
-        </div>
-      )}
+    <div className="flex items-center gap-2 px-5 py-2.5 bg-white border-b border-stone-100 overflow-x-auto scrollbar-hide">
+      <span className="text-[10px] font-extrabold text-stone-500 shrink-0 whitespace-nowrap">
+        {monthsOld}개월 · {config.period}
+      </span>
+      <span className="text-stone-300 shrink-0 text-[10px]">|</span>
+      {focusChips.map((name) => (
+        <button
+          key={name}
+          onClick={() => onNutrientClick(name)}
+          className="text-[10px] font-extrabold text-orange-600 bg-orange-50 border border-orange-100 px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 hover:bg-orange-100 transition-colors"
+        >
+          {name}
+        </button>
+      ))}
     </div>
   )
 }
@@ -779,37 +628,6 @@ export default function SearchClient({
       {/* ── 스티키 헤더 ── */}
       <div className="flex-shrink-0 bg-[#FFFBF7]/95 backdrop-blur-sm px-5 pt-4 pb-3 border-b border-stone-100/50">
 
-        {/* 컨텍스트 배너 (검색 중이거나 대안 탐색 중이 아닐 때 전체 표시) */}
-        {!debouncedQuery && (
-          <>
-            {/* 외부 진입 맥락 인디케이터 (Home/Record에서 특정 영양소 연결로 진입 시) */}
-            {initialNutrient && activeNutrient === initialNutrient && (
-              <div className="mb-2 flex items-center justify-between bg-stone-50 border border-stone-100 rounded-xl px-3 py-1.5">
-                <span className="text-[10px] font-bold text-stone-400">
-                  홈에서 이어서 살펴보는 중 ·{" "}
-                  <span className="text-orange-500">{initialNutrient}</span>
-                </span>
-                <button
-                  onClick={() => setActiveNutrient(null)}
-                  className="text-[10px] font-bold text-stone-400 hover:text-stone-600"
-                >
-                  전체 보기
-                </button>
-              </div>
-            )}
-            <SearchContextBanner
-              monthsOld={monthsOld}
-              selectedProducts={selectedProducts}
-              referenceProduct={referenceProduct}
-              stageFilter={stageFilter}
-              onNutrientClick={handleNutrientClick}
-              onReferenceClick={handleReferenceClick}
-              onClearReference={() => setReferenceProduct(null)}
-              onClearStage={() => setStageFilter(null)}
-            />
-          </>
-        )}
-
         {/* 검색 입력 */}
         <div className="relative group mb-3">
           <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-stone-400 group-focus-within:text-orange-500 transition-colors">
@@ -930,8 +748,8 @@ export default function SearchClient({
           </div>
         )}
 
-        {/* 영양소 필터 — 아직 살펴보지 않은 영양소를 앞으로, 해당 항목에 점 표시 */}
-        {!referenceProduct && (
+        {/* 영양소 필터 — 건기식 탭일 때만 노출 */}
+        {!referenceProduct && categoryFilter === "supplement" && (
           <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
             <button
               onClick={() => setActiveNutrient(null)}
@@ -966,8 +784,50 @@ export default function SearchClient({
         )}
       </div>
 
-      {/* ── 제품 목록 ── */}
+      {/* ── 스크롤 영역 ── */}
       <div className="flex-1 overflow-y-auto scrollbar-hide">
+
+        {/* 축약 컨텍스트 바 — 기본 탐색 모드일 때만 */}
+        {!debouncedQuery && !referenceProduct && stageFilter === null && (
+          <SearchContextBanner
+            monthsOld={monthsOld}
+            selectedProducts={selectedProducts}
+            onNutrientClick={handleNutrientClick}
+          />
+        )}
+
+        {/* 홈 진입 맥락 인디케이터 */}
+        {!debouncedQuery && initialNutrient && activeNutrient === initialNutrient && (
+          <div className="mx-5 mt-2 flex items-center justify-between bg-stone-50 border border-stone-100 rounded-xl px-3 py-1.5">
+            <span className="text-[10px] font-bold text-stone-400">
+              홈에서 이어서 살펴보는 중 ·{" "}
+              <span className="text-orange-500">{initialNutrient}</span>
+            </span>
+            <button
+              onClick={() => setActiveNutrient(null)}
+              className="text-[10px] font-bold text-stone-400 hover:text-stone-600"
+            >
+              전체 보기
+            </button>
+          </div>
+        )}
+
+        {/* 활성 필터 칩 */}
+        {activeNutrient && (
+          <div className="flex items-center gap-2 px-5 py-2 overflow-x-auto scrollbar-hide">
+            <span className="text-[10px] font-bold text-stone-400 shrink-0">필터</span>
+            <button
+              onClick={() => setActiveNutrient(null)}
+              className="flex items-center gap-1 text-[10px] font-extrabold text-stone-700 bg-stone-100 px-2.5 py-1 rounded-full hover:bg-stone-200 transition-colors shrink-0"
+            >
+              {activeNutrient}
+              <svg width={8} height={8} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        )}
+
         <div className="px-5 pb-4 pt-3 flex flex-col gap-3">
           {/* 모드별 결과 헤더 */}
           {referenceProduct && displayedProducts.length > 0 && (
