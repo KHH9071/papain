@@ -1,49 +1,53 @@
 /**
- * home_briefs.ts — 홈 성장 체크포인트 브리핑 데이터
+ * home_briefs.ts — 홈 성장 마일스톤 데이터
  *
- * PERIOD_CONFIG (nutrition_utils.ts)와 별도 관리:
- *  - PERIOD_CONFIG: 탐색 맥락 배너, 브리핑 카드 메시지 (공유)
- *  - GROWTH_BRIEF: 홈 전용 성장 체크포인트 (2~3개 포인트 + 탐색 힌트)
- *
- * 원칙: 압축 — 1줄 설명 + 2~3개 키워드 칩 + CTA 힌트
- * 홈에서 문서처럼 길게 쓰지 말 것.
+ * 역할: Hero 카드(영양 탐색)와 분리된 발달/생활/행동 맥락 카드
+ * 원칙: 영양소 직접 언급 없이 발달 맥락 중심으로 작성
+ * 확장: 향후 월령별 리치 콘텐츠(리포트, 영상, 아티클) 연결 허브로 사용 가능
  */
 
 import type { AgeGroup } from "@/lib/kdri_data"
 
-export type GrowthBrief = {
-  /** 한 줄 시기 설명 */
-  desc: string
-  /** 이 시기 체크포인트 키워드 (2~3개) */
-  points: string[]
-  /** 탐색 탭 연결 영양소 힌트 — 없으면 일반 탐색 */
-  searchHint?: string
+export type GrowthMilestone = {
+  /** 카드 섹션 헤더 아래 공감형 서브카피 */
+  subtitle: string
+  /** 카드 내부 핵심 헤드라인 1개 */
+  headline: string
+  /** 부모에게 던지는 관찰/질문 프롬프트 1개 */
+  prompt: string
+  /** 발달 도메인 라벨 4개 — DOMAIN_EMOJI 키와 일치해야 함 */
+  domains: [string, string, string, string]
 }
 
-export const GROWTH_BRIEF: Record<AgeGroup, GrowthBrief> = {
+export const GROWTH_MILESTONE: Record<AgeGroup, GrowthMilestone> = {
   "0-5": {
-    desc: "수유와 분유가 중심이 되는 첫 시기예요. 하루 루틴 잡기가 중요해요.",
-    points: ["수유 루틴 확인", "분유 선택 기준", "성장 기록 시작"],
-    searchHint: "비타민D",
+    subtitle: "모든 반응 하나하나가 소중한 시기예요.",
+    headline: "눈맞춤과 소리 반응이 발달하는 시기예요",
+    prompt: "오늘 아이가 소리나 얼굴에 반응한 순간이 있었나요?",
+    domains: ["인지·언어", "신체·운동", "정서·사회성", "수유 리듬"],
   },
   "6-11": {
-    desc: "이유식이 시작되는 시기예요. 식사 형태와 식재료 다양성이 서서히 늘어나요.",
-    points: ["이유식 적응 확인", "수유·분유 조정", "식재료 다양화"],
-    searchHint: "철",
+    subtitle: "세상이 궁금해지기 시작하는 시기예요.",
+    headline: "이유식 적응과 함께 탐색 본능이 깨어나요",
+    prompt: "새 식재료를 처음 맛봤을 때 반응이 어땠나요?",
+    domains: ["인지·언어", "신체·운동", "정서·사회성", "식습관"],
   },
   "12-35": {
-    desc: "자기주장이 강해지며 식습관 편차가 커질 수 있어요.",
-    points: ["식습관 편차 증가", "편식 시작 여부", "유제품 전환 점검"],
-    searchHint: "칼슘",
+    subtitle: "조금 느려도 괜찮아요. 아이만의 속도를 응원해주세요.",
+    headline: "걷기와 자기 표현이 빠르게 발달해요",
+    prompt: "오늘 아이가 처음으로 해본 것이 있었나요?",
+    domains: ["인지·언어", "신체·운동", "정서·사회성", "식습관"],
   },
   "36-71": {
-    desc: "활동량이 빠르게 늘어나는 시기예요. 식사 패턴을 점검할 때예요.",
-    points: ["편식 패턴 체크", "식사 규칙성 확인", "활동량 변화 기록"],
-    searchHint: "칼슘",
+    subtitle: "스스로 하고 싶은 게 많아지는 시기예요.",
+    headline: "또래와의 놀이와 규칙 인식이 생겨요",
+    prompt: "오늘 아이가 친구와 어떻게 놀았나요?",
+    domains: ["인지·언어", "신체·운동", "정서·사회성", "식습관"],
   },
   "72-88": {
-    desc: "학교생활 준비가 시작되는 시기예요. 생활 리듬 안정이 중요해요.",
-    points: ["생활 리듬 안정", "편식 패턴 확인", "성장 속도 기록"],
-    searchHint: "칼슘",
+    subtitle: "새로운 환경에 적응하는 힘이 자라는 시기예요.",
+    headline: "학교 준비와 함께 자립심이 쑥 자라요",
+    prompt: "오늘 아이가 스스로 해결한 일이 있었나요?",
+    domains: ["인지·언어", "신체·운동", "정서·사회성", "생활 리듬"],
   },
 }

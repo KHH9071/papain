@@ -11,7 +11,7 @@ import {
   MAX_MONTHS,
 } from "@/lib/kdri_data"
 import { PERIOD_CONFIG, getMultiplier } from "@/lib/nutrition_utils"
-import { GROWTH_BRIEF } from "@/lib/home_briefs"
+import { GROWTH_MILESTONE } from "@/lib/home_briefs"
 import type { AggregatedNutrient, Product } from "@/lib/types"
 import Link from "next/link"
 
@@ -67,7 +67,7 @@ export default function HomeClient() {
 
   const ageGroup    = getAgeGroup(monthsOld)
   const briefing    = PERIOD_CONFIG[ageGroup]
-  const growthBrief = GROWTH_BRIEF[ageGroup]
+  const growthMilestone = GROWTH_MILESTONE[ageGroup]
 
   const aggNutrients  = useMemo(() => aggregateNutrients(selectedProducts), [selectedProducts])
   const riData        = useMemo(() => getRecommendedIntakes(monthsOld), [monthsOld])
@@ -210,7 +210,8 @@ export default function HomeClient() {
 
         {/* 3. 성장 체크포인트 브리핑 */}
         <HomeGrowthBriefCard
-          brief={growthBrief}
+          monthsOld={monthsOld}
+          milestone={growthMilestone}
         />
 
         {/* 4. 퀵 액션 */}
