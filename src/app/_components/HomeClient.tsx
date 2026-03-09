@@ -13,8 +13,6 @@ import {
 import { PERIOD_CONFIG, getMultiplier } from "@/lib/nutrition_utils"
 import { GROWTH_MILESTONE } from "@/lib/home_briefs"
 import type { AggregatedNutrient, Product } from "@/lib/types"
-import Link from "next/link"
-
 import HomeHeroCard        from "./home/HomeHeroCard"
 import HomeNutritionCard   from "./home/HomeNutritionCard"
 import HomeGrowthBriefCard from "./home/HomeGrowthBriefCard"
@@ -185,7 +183,7 @@ export default function HomeClient() {
       {/* ── 스크롤 영역 ── */}
       <div className="flex-1 overflow-y-auto scrollbar-hide">
 
-        {/* 1. Hero 브리핑 카드 */}
+        {/* 1. 맥락 제시 — Hero 브리핑 카드 */}
         <HomeHeroCard
           monthsOld={monthsOld}
           period={briefing.period}
@@ -197,7 +195,13 @@ export default function HomeClient() {
           ctaHref={ctaInfo.href}
         />
 
-        {/* 2. 오늘의 영양 현황 */}
+        {/* 2. 흥미 유발 — 성장 마일스톤 */}
+        <HomeGrowthBriefCard
+          monthsOld={monthsOld}
+          milestone={growthMilestone}
+        />
+
+        {/* 3. 핵심 가치 제시 — 오늘의 영양 현황 */}
         <HomeNutritionCard
           hasProducts={hasProducts}
           standardNutrients={standardNutrients}
@@ -208,38 +212,15 @@ export default function HomeClient() {
           routineCount={routineCount}
         />
 
-        {/* 3. 성장 체크포인트 브리핑 */}
-        <HomeGrowthBriefCard
-          monthsOld={monthsOld}
-          milestone={growthMilestone}
-        />
-
-        {/* 4. 퀵 액션 */}
+        {/* 4. 즉시 행동 유도 — 빠른 진입 */}
         <HomeQuickActions />
 
-        {/* 5. 설계 바구니 */}
+        {/* 5. 관리/소유감 — 설계 바구니 */}
         <HomeBasketSection
           selectedProducts={selectedProducts}
           toggleProduct={toggleProduct}
           colorMap={colorMap}
         />
-
-        {/* 6. 보조 섹션: 이 시기 살펴볼 영양소 */}
-        <div className="mx-4 mt-3 mb-6">
-          <p className="text-[10px] font-bold text-stone-400 mb-2">이 시기 함께 살펴보는 영양소</p>
-          <div className="flex gap-2">
-            {briefing.focus.map((nutrient) => (
-              <Link
-                key={nutrient}
-                href={`/search?nutrient=${encodeURIComponent(nutrient)}`}
-                className="flex-1 bg-white border border-stone-100 rounded-xl py-2.5 flex flex-col items-center gap-1 shadow-sm hover:border-orange-200 hover:bg-orange-50/50 transition-colors"
-              >
-                <span className="text-[11px] font-extrabold text-stone-600">{nutrient}</span>
-                <span className="text-[9px] font-medium text-stone-400">제품 보기</span>
-              </Link>
-            ))}
-          </div>
-        </div>
 
       </div>
     </div>

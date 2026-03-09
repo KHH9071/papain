@@ -34,7 +34,7 @@ export default function HomeGrowthBriefCard({ monthsOld, milestone }: Props) {
       </div>
 
       {/* 카드 본체 */}
-      <div className="bg-gradient-to-b from-orange-50/60 to-white rounded-2xl border border-orange-100/70 shadow-[0_4px_16px_rgb(234,88,12,0.06)] p-4">
+      <div className="bg-gradient-to-b from-orange-50/60 to-white rounded-2xl border border-orange-100 shadow-sm p-4">
 
         {/* FOCUS 배지 */}
         <span className="inline-block px-2 py-0.5 rounded-lg bg-white border border-orange-100 text-orange-500 text-[9px] font-black tracking-widest mb-2.5 shadow-sm">
