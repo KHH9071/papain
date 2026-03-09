@@ -4,15 +4,10 @@ import Link from "next/link"
 import type { GrowthBrief } from "@/lib/home_briefs"
 
 type Props = {
-  monthsOld: number
   brief: GrowthBrief
 }
 
-export default function HomeGrowthBriefCard({ monthsOld, brief }: Props) {
-  const searchHref = brief.searchHint
-    ? `/search?nutrient=${encodeURIComponent(brief.searchHint)}`
-    : "/search"
-
+export default function HomeGrowthBriefCard({ brief }: Props) {
   return (
     <div className="mx-4 mt-3 bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
 
@@ -24,7 +19,7 @@ export default function HomeGrowthBriefCard({ monthsOld, brief }: Props) {
             <polyline points="12 6 12 12 16 14" />
           </svg>
         </div>
-        <h2 className="text-[12px] font-extrabold text-stone-700">{monthsOld}개월 체크포인트</h2>
+        <h2 className="text-[12px] font-extrabold text-stone-700">이번 시기 체크포인트</h2>
       </div>
 
       {/* 설명 */}
@@ -44,27 +39,16 @@ export default function HomeGrowthBriefCard({ monthsOld, brief }: Props) {
         ))}
       </div>
 
-      {/* CTA */}
-      <div className="flex items-center gap-2">
-        <Link
-          href={searchHref}
-          className="text-[11px] font-extrabold text-stone-500 hover:text-orange-500 flex items-center gap-1 transition-colors"
-        >
-          관련 제품 보기
-          <svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
-        </Link>
-        <Link
-          href="/record"
-          className="text-[11px] font-extrabold text-stone-500 hover:text-orange-500 flex items-center gap-1 transition-colors"
-        >
-          성장 기록하기
-          <svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
-        </Link>
-      </div>
+      {/* CTA — 성장 기록만 (탐색 CTA는 Hero에서 담당) */}
+      <Link
+        href="/record"
+        className="text-[11px] font-extrabold text-stone-500 hover:text-orange-500 flex items-center gap-1 transition-colors"
+      >
+        성장 기록하기
+        <svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+      </Link>
     </div>
   )
 }

@@ -210,7 +210,6 @@ export default function HomeClient() {
 
         {/* 3. 성장 체크포인트 브리핑 */}
         <HomeGrowthBriefCard
-          monthsOld={monthsOld}
           brief={growthBrief}
         />
 
