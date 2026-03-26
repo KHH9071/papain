@@ -153,3 +153,99 @@ export type AggregatedNutrient = {
   amount: number
   unit: string
 }
+
+// ─── Canonical Product (Phase 4A — DB Option B) ───────────────────────────────
+//
+// canonical_product 테이블 레코드를 표현하는 타입.
+// 기존 Product / ProductMetadata 타입과 섞지 않는다.
+// 출처: data_pipeline/schema/canonical_product.sql
+// 정책: PHASE3B_POLICY_LOCK.md
+
+export type CanonicalProductConfidence = "high" | "medium" | "low"
+
+/** taxonomy YAML 허용값과 동일. "unknown" = stage 미확인 (Policy 3). */
+export type CanonicalProductStage = "PRE" | "1" | "2" | "3" | "4" | "unknown"
+
+/** Policy 2: 원산지 기준. "Unknown" = country_version 미확인. */
+export type CanonicalProductCountryVersion =
+  | "KR" | "DE" | "UK" | "EU" | "AU" | "US" | "Unknown"
+
+export type CanonicalProductMilkBase = "cow" | "goat" | "plant" | "unknown"
+
+export type CanonicalProductProteinType =
+  | "standard"
+  | "partial_hydrolyzed"
+  | "full_hydrolyzed"
+  | "amino_acid"
+  | "unknown"
+
+export type CanonicalProductFormulaType =
+  | "infant_formula"
+  | "follow_on_formula"
+  | "growing_up_milk"
+  | "specialty_formula"
+  | "unknown"
+
+export type CanonicalProductForm = "powder" | "liquid" | "ready_to_feed" | "unknown"
+
+/** Phase 5G Evidence Grade. */
+export type CanonicalProductEvidenceGrade =
+  | "Verified-A"
+  | "Verified-B"
+  | "Verified-C"
+  | "Restricted"
+  | "Unverified"
+
+/** Phase 5H Recall Status. */
+export type CanonicalProductRecallStatus =
+  | "unknown"
+  | "none"
+  | "active"
+  | "resolved"
+  | "batch_specific"
+
+export type CanonicalProduct = {
+  /** 파이프라인 생성 ID. 예: "formula_group_aptamil_profutura_uk_s1_powder_800g" */
+  canonical_product_id: string
+  brand: string
+  line: string | null
+  normalized_name: string
+  country_version: CanonicalProductCountryVersion
+  /** Policy 3: 불명확 시 "unknown". age_range_text로 추론 금지. */
+  stage: CanonicalProductStage
+  age_range_text: string | null
+  milk_base: CanonicalProductMilkBase | null
+  protein_type: CanonicalProductProteinType | null
+  formula_type: CanonicalProductFormulaType | null
+  form: CanonicalProductForm | null
+  package_size_value: string | null
+  package_size_unit: string | null
+  /** DB boolean. JSON 파이프라인에서는 "true"/"false" 문자열 → boolean 변환됨. */
+  organic_flag: boolean
+  source_count: number
+  /** JSONB 배열. 예: ["kr_food_regulatory_import", "official_brand_aptamil"] */
+  sources_seen: string[]
+  /** Policy 4 (C2): auto-approve 기준은 "high" 또는 "medium". */
+  confidence_score: CanonicalProductConfidence
+  review_status: string
+  reviewed_by: string | null
+  approved_at: string | null
+  created_at: string
+  updated_at: string
+  /** Phase 5G: Evidence grade. */
+  evidence_grade: CanonicalProductEvidenceGrade | null
+  evidence_source_1_type: string | null
+  evidence_source_1_url: string | null
+  evidence_source_2_type: string | null
+  evidence_source_2_url: string | null
+  /** Phase 5H: Recall tracking. */
+  recall_status: CanonicalProductRecallStatus | null
+  recall_jurisdiction: string | null
+  recall_source_url: string | null
+  recall_checked_at: string | null
+  /** Phase 5G: Policy flags. */
+  requires_human_approval: boolean | null
+  is_recommendable: boolean | null
+  is_searchable: boolean | null
+  is_comparable: boolean | null
+}

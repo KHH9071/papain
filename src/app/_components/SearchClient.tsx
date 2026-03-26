@@ -5,8 +5,9 @@ import { supabase } from "@/lib/supabase/client"
 import { useAppStore } from "@/lib/store"
 import { getAgeGroup } from "@/lib/kdri_data"
 import { PERIOD_CONFIG, getNutrientGaps } from "@/lib/nutrition_utils"
-import type { Product, ProductCategory } from "@/lib/types"
+import type { Product, ProductCategory, CanonicalProduct } from "@/lib/types"
 import { ROUTINE_PRODUCTS, CATEGORY_ICON, CATEGORY_LABEL } from "@/lib/routine_foods"
+import CanonicalFormulaSection from "@/app/_components/search/CanonicalFormulaSection"
 import {
   getComparisonCapability,
   isRoutineProduct,
@@ -421,10 +422,13 @@ function resolveInitialCategory(category: string | undefined): CategoryFilter {
 
 export default function SearchClient({
   initialProducts,
+  initialCanonicalProducts,
   initialNutrient,
   initialCategory,
 }: {
   initialProducts: Product[]
+  /** Phase 4B: canonical_product 테이블 레코드. "분유·루틴" 탭에서 별도 섹션으로 표시. */
+  initialCanonicalProducts?: CanonicalProduct[]
   initialNutrient?: string
   initialCategory?: string
 }) {
@@ -827,6 +831,21 @@ export default function SearchClient({
             </button>
           </div>
         )}
+
+        {/* ── Canonical 분유 섹션 ──
+            "분유·루틴" 탭 + 기준제품 비교 모드가 아닐 때 노출.
+            텍스트 검색 시에도 표시 (카탈로그 내 필터는 내부에서 처리).
+            stageFilter 활성 시에도 표시.
+            기존 products 목록과 완전 분리 — 섞지 않음. */}
+        {categoryFilter === "routine" &&
+          !referenceProduct &&
+          initialCanonicalProducts &&
+          initialCanonicalProducts.length > 0 && (
+            <CanonicalFormulaSection
+              products={initialCanonicalProducts}
+              stageFilter={stageFilter}
+            />
+          )}
 
         <div className="px-5 pb-4 pt-3 flex flex-col gap-3">
           {/* 모드별 결과 헤더 */}

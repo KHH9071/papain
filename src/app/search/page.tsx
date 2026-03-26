@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase/client"
+import { listCanonicalProducts } from "@/lib/canonical_products"
 import SearchClient from "../_components/SearchClient"
 import type { Product } from "@/lib/types"
 
@@ -20,10 +21,15 @@ export default async function SearchPage({
 }: {
   searchParams: Promise<{ nutrient?: string; category?: string }>
 }) {
-  const [products, { nutrient, category }] = await Promise.all([getProducts(), searchParams])
+  const [products, canonicalProducts, { nutrient, category }] = await Promise.all([
+    getProducts(),
+    listCanonicalProducts(),
+    searchParams,
+  ])
   return (
     <SearchClient
       initialProducts={products}
+      initialCanonicalProducts={canonicalProducts}
       initialNutrient={nutrient}
       initialCategory={category}
     />
