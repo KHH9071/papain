@@ -16,6 +16,7 @@ import nutrientDb from "./formula_nutrient_db.json"
 // ── 한국어 브랜드명 매핑 ─────────────────────────────────────────────────────
 
 const BRAND_KO: Record<string, string> = {
+  // 해외 브랜드
   Aptamil:     "압타밀",
   Kendamil:    "켄다밀",
   HiPP:        "힙",
@@ -25,9 +26,15 @@ const BRAND_KO: Record<string, string> = {
   Bubs:        "버브스",
   Similac:     "시밀락",
   Enfamil:     "엔파밀",
+  // 한국 브랜드 (이미 한글이지만 매핑 일관성 유지)
+  "남양유업":   "남양유업",
+  "매일유업":   "매일유업",
+  "일동후디스": "일동후디스",
+  "롯데푸드":   "롯데푸드",
 }
 
 const LINE_KO: Record<string, string> = {
+  // 해외 라인
   Profutura:            "프로푸투라",
   Goat:                 "산양",
   Classic:              "클래식",
@@ -39,6 +46,14 @@ const LINE_KO: Record<string, string> = {
   "Organic Grass Fed":  "유기농 목초",
   "360 Total Care":     "360 토탈케어",
   NeuroPro:             "뉴로프로",
+  // 한국 라인 (이미 한글)
+  "임페리얼 XO":        "임페리얼 XO",
+  "아이엠마더":          "아이엠마더",
+  "앱솔루트 명작":       "앱솔루트 명작",
+  "산양분유":            "산양분유",
+  "트루맘":              "트루맘",
+  "파스퇴르 위드맘":     "파스퇴르 위드맘",
+  "압타밀":              "압타밀",
 }
 
 const COUNTRY_KO: Record<string, string> = {

@@ -1,6 +1,9 @@
 /**
- * routine_foods.ts — 루틴 식품 Mock DB
- * (분유 / 우유 / 치즈 등 매일 먹이는 기본 식품)
+ * routine_foods.ts — 루틴 식품 DB (우유 / 치즈)
+ *
+ * 분유는 canonical_product 파이프라인으로 이관 완료.
+ * 이 파일에는 우유·치즈만 남김.
+ *
  * 영양소 키: "영양소명||단위" — KDRI_RI 키와 동일 포맷
  * nutrients 값 단위: ml 기반 식품 → per 100ml, 슬라이스 기반 → per slice
  */
@@ -13,10 +16,6 @@ export type RoutineFood = {
   baseUnit: "ml" | "slice"
   defaultAmount: number  // 기본 하루 섭취량 (ml 또는 슬라이스 수)
   nutrients: Record<string, number>
-  /** formula 전용: 분유 서브타입 (고신뢰 항목만) */
-  formulaSubtype?: FormulaSubtype
-  /** formula 전용: 원유 동물 기반 (고신뢰 항목만) */
-  baseAnimalType?: "cow" | "goat"
 }
 
 export type SelectedRoutineFood = {
@@ -25,63 +24,6 @@ export type SelectedRoutineFood = {
 }
 
 export const ROUTINE_FOODS: RoutineFood[] = [
-  {
-    id: "aptamil-1",
-    name: "압타밀 1단계",
-    brand: "Aptamil",
-    category: "formula",
-    baseUnit: "ml",
-    defaultAmount: 800,
-    // Source: official_brand_aptamil_kr_import + kr_food_regulatory
-    nutrients: {
-      "칼슘||mg":       56,
-      "비타민D||μg":    1.2,
-      "철||mg":         0.53,
-      "아연||mg":       0.50,
-      "비타민C||mg":    9.2,
-      "비타민A||μg RE": 54,
-      "단백질||g":      1.3,
-      "DHA||mg":        17,
-    },
-  },
-  {
-    id: "imperial-xo-3",
-    name: "임페리얼 XO 3단계",
-    brand: "남양유업",
-    category: "formula",
-    baseUnit: "ml",
-    defaultAmount: 600,
-    // Source: official_brand_namyang + kr_food_regulatory
-    nutrients: {
-      "칼슘||mg":       100,
-      "비타민D||μg":    1.5,
-      "철||mg":         1.3,
-      "아연||mg":       0.75,
-      "비타민C||mg":    7.0,
-      "비타민A||μg RE": 55,
-      "단백질||g":      1.8,
-      "DHA||mg":        8.0,
-    },
-  },
-  {
-    id: "absolute-2",
-    name: "앱솔루트 명작 2단계",
-    brand: "매일유업",
-    category: "formula",
-    baseUnit: "ml",
-    defaultAmount: 700,
-    // Source: official_brand_maeil + kr_food_regulatory
-    nutrients: {
-      "칼슘||mg":       78,
-      "비타민D||μg":    1.1,
-      "철||mg":         1.0,
-      "아연||mg":       0.50,
-      "비타민C||mg":    5.6,
-      "비타민A||μg RE": 50,
-      "단백질||g":      1.5,
-      "DHA||mg":        9.0,
-    },
-  },
   {
     id: "seoul-milk",
     name: "서울우유",
@@ -147,9 +89,8 @@ export const CATEGORY_LABEL: Record<RoutineFood["category"], string> = {
 }
 
 // ─── 통합 Product 형식 변환 (향후 Supabase 단일 테이블 마이그레이션 준비) ─────
-import type { Product, FormulaSubtype } from "./types"
+import type { Product } from "./types"
 import {
-  deriveFormulaMetadata,
   deriveMilkMetadata,
   deriveCheeseMetadata,
 } from "./metadata_seed"
@@ -163,8 +104,7 @@ import {
  */
 export const ROUTINE_PRODUCTS: Product[] = ROUTINE_FOODS.map((food, i) => {
   const metadata =
-    food.category === "formula" ? deriveFormulaMetadata(food.name, food.brand, food.formulaSubtype, food.baseAnimalType)
-    : food.category === "milk"  ? deriveMilkMetadata(food.name, food.brand)
+    food.category === "milk" ? deriveMilkMetadata(food.name, food.brand)
     : deriveCheeseMetadata()
 
   return {

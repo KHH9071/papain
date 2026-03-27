@@ -498,14 +498,10 @@ export default function SearchClient({
       .map((p, i) => [p.id, PRODUCT_COLORS[i % PRODUCT_COLORS.length]])
   )
 
-  // ── ROUTINE_PRODUCTS + canonical 분유 병합 ─────────────────────────────────
-  // 기존 mock 분유는 ROUTINE_PRODUCTS에서 milk/cheese만 남기고
-  // canonical 변환 분유를 합산
+  // ── ROUTINE_PRODUCTS(우유·치즈) + canonical 분유 병합 ────────────────────
   const allRoutineProducts = useMemo(() => {
-    const milkAndCheese = ROUTINE_PRODUCTS.filter(p => p.category !== "formula")
-    const mockFormula   = ROUTINE_PRODUCTS.filter(p => p.category === "formula")
-    const canonical     = canonicalFormulaProducts ?? []
-    return [...mockFormula, ...canonical, ...milkAndCheese]
+    const canonical = canonicalFormulaProducts ?? []
+    return [...canonical, ...ROUTINE_PRODUCTS]
   }, [canonicalFormulaProducts])
 
   // ── 디바운스 ─────────────────────────────────────────────────────────────
