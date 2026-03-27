@@ -5,9 +5,8 @@ import { supabase } from "@/lib/supabase/client"
 import { useAppStore } from "@/lib/store"
 import { getAgeGroup } from "@/lib/kdri_data"
 import { PERIOD_CONFIG, getNutrientGaps } from "@/lib/nutrition_utils"
-import type { Product, ProductCategory, CanonicalProduct } from "@/lib/types"
+import type { Product, ProductCategory } from "@/lib/types"
 import { ROUTINE_PRODUCTS, CATEGORY_ICON, CATEGORY_LABEL } from "@/lib/routine_foods"
-import CanonicalFormulaSection from "@/app/_components/search/CanonicalFormulaSection"
 import {
   getComparisonCapability,
   isRoutineProduct,
@@ -26,13 +25,9 @@ const PRODUCT_COLORS = [
   "#fbbf24", "#38bdf8", "#a78bfa", "#818cf8",
 ]
 
-type CategoryFilter = "all" | "supplement" | "routine"
+type CategoryFilter = "all" | "supplement" | "formula" | "milk" | "cheese"
 
 // ─── 유사 제품 알고리즘 ────────────────────────────────────────────────────────
-// 비교 축: nutrient-overlap (영양소 이름 교집합 수, 많을수록 유사)
-// maxCount: 아코디언 내부 미리보기 = 3, 전체 비교 탐색 모드 = 5
-// minOverlap: 공통 성분 0개는 제외 (guardrail — "비슷하다"는 인상 방지)
-// 역량 프로파일: lib/comparison.ts → getComparisonCapability 참조
 function getSimilarProducts(
   current: Product,
   allProducts: Product[],
@@ -140,8 +135,8 @@ function MobileProductCard({
   const canCompare       = capability.activeAxes.includes("nutrient-overlap")
   const formulaStage     = product.metadata?.formulaStage
   const canFilterByStage = capability.activeAxes.includes("stage") && !!formulaStage
+  const hasNutrients     = product.nutrients.length > 0
 
-  // 아코디언 내 미리보기는 3개 고정, nutrient-overlap 축이 없는 제품은 빈 배열
   const similarList = useMemo(
     () => (expanded && canCompare ? getSimilarProducts(product, allProducts, 3) : []),
     [expanded, canCompare, product, allProducts]
@@ -205,23 +200,43 @@ function MobileProductCard({
             {product.product_name}
           </h3>
 
-          {/* 영양소 태그 */}
-          <div className="flex gap-1.5 mt-2 flex-wrap">
-            {product.nutrients.slice(0, 5).map((n, i) => (
-              <span
-                key={i}
-                className={`text-[10px] px-2 py-0.5 rounded-md font-bold ${
-                  selected
-                    ? isRoutine
-                      ? "bg-blue-50 text-blue-600"
-                      : "bg-orange-50 text-orange-600"
-                    : "bg-stone-50 text-stone-500 border border-stone-100"
-                }`}
-              >
-                {n.name}
-              </span>
-            ))}
-          </div>
+          {/* 영양소 태그 — 영양소가 있는 경우만 */}
+          {hasNutrients ? (
+            <div className="flex gap-1.5 mt-2 flex-wrap">
+              {product.nutrients.slice(0, 5).map((n, i) => (
+                <span
+                  key={i}
+                  className={`text-[10px] px-2 py-0.5 rounded-md font-bold ${
+                    selected
+                      ? isRoutine
+                        ? "bg-blue-50 text-blue-600"
+                        : "bg-orange-50 text-orange-600"
+                      : "bg-stone-50 text-stone-500 border border-stone-100"
+                  }`}
+                >
+                  {n.name}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <div className="flex gap-1.5 mt-2 flex-wrap">
+              {product.metadata?.isOrganic && (
+                <span className="text-[10px] px-2 py-0.5 rounded-md font-bold bg-green-50 text-green-600 border border-green-100">
+                  유기농
+                </span>
+              )}
+              {product.metadata?.baseAnimalType === "goat" && (
+                <span className="text-[10px] px-2 py-0.5 rounded-md font-bold bg-amber-50 text-amber-600 border border-amber-100">
+                  산양
+                </span>
+              )}
+              {product.functionality && (
+                <span className="text-[10px] px-2 py-0.5 rounded-md font-bold bg-violet-50 text-violet-500 border border-violet-100">
+                  {product.functionality}
+                </span>
+              )}
+            </div>
+          )}
 
           {selected && isRoutine && product.daily_serving_count && (
             <p className="text-[10px] font-bold text-blue-500 mt-1.5">
@@ -251,47 +266,80 @@ function MobileProductCard({
           className="px-4 pb-4 pt-2 bg-stone-50/50 border-t border-stone-100"
           onClick={(e) => e.stopPropagation()}
         >
-          {product.functionality && (
+          {product.functionality && hasNutrients && (
             <p className="text-xs text-stone-500 font-medium leading-relaxed mb-3">
               {product.functionality}
             </p>
           )}
           {product.precautions && (
             <p className="text-xs text-rose-500/80 font-medium leading-relaxed mb-3">
-              ⚠ {product.precautions}
+              {product.precautions}
             </p>
           )}
 
-          {/* 영양성분표 */}
-          <div className="bg-white rounded-xl border border-stone-200 p-3 flex flex-col gap-2 mb-3">
-            {isRoutine && (
-              <div className="flex justify-between items-center pb-2 border-b border-stone-100">
-                <span className="text-[11px] font-bold text-stone-400">기준 단위</span>
-                <span className="text-xs font-extrabold text-stone-700">
-                  per 100{product.base_unit === "ml" ? "ml" : "장"}
-                </span>
+          {/* 영양성분표 — 영양소가 있는 제품 */}
+          {hasNutrients ? (
+            <div className="bg-white rounded-xl border border-stone-200 p-3 flex flex-col gap-2 mb-3">
+              {isRoutine && (
+                <div className="flex justify-between items-center pb-2 border-b border-stone-100">
+                  <span className="text-[11px] font-bold text-stone-400">기준 단위</span>
+                  <span className="text-xs font-extrabold text-stone-700">
+                    per 100{product.base_unit === "ml" ? "ml" : "장"}
+                  </span>
+                </div>
+              )}
+              {product.metadata?.derivedAgeRangeMonths && (
+                <div className="flex justify-between items-center pb-2 border-b border-stone-100">
+                  <span className="text-[11px] font-bold text-stone-400">단계 기준 예상 월령</span>
+                  <span className="text-xs font-bold text-stone-500">
+                    {product.metadata.derivedAgeRangeMonths[0]}~{product.metadata.derivedAgeRangeMonths[1]}개월
+                  </span>
+                </div>
+              )}
+              {product.nutrients.map((n, i) => (
+                <div key={i} className="flex justify-between items-center">
+                  <span className="text-[11px] font-bold text-stone-500">{n.name}</span>
+                  <span className="text-xs font-bold text-stone-800">{n.amount}{n.unit}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            /* 영양소 미제공 제품 — 제품 정보 표시 */
+            <div className="bg-white rounded-xl border border-stone-200 p-3 flex flex-col gap-2 mb-3">
+              {product.metadata?.derivedAgeRangeMonths && (
+                <div className="flex justify-between items-center pb-2 border-b border-stone-100">
+                  <span className="text-[11px] font-bold text-stone-400">예상 월령</span>
+                  <span className="text-xs font-bold text-stone-500">
+                    {product.metadata.derivedAgeRangeMonths[0]}~{product.metadata.derivedAgeRangeMonths[1]}개월
+                  </span>
+                </div>
+              )}
+              {product.metadata?.baseAnimalType && (
+                <div className="flex justify-between items-center">
+                  <span className="text-[11px] font-bold text-stone-400">원유 기반</span>
+                  <span className="text-xs font-bold text-stone-800">
+                    {product.metadata.baseAnimalType === "cow" ? "소" : "산양"}유
+                  </span>
+                </div>
+              )}
+              {product.metadata?.isOrganic && (
+                <div className="flex justify-between items-center">
+                  <span className="text-[11px] font-bold text-stone-400">인증</span>
+                  <span className="text-xs font-bold text-green-600">유기농</span>
+                </div>
+              )}
+              <div className="flex items-center gap-1.5 pt-2 border-t border-stone-100">
+                <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="#a8a29e" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                  <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                <p className="text-[10px] font-bold text-stone-400">
+                  영양성분 정보는 추후 업데이트 예정이에요
+                </p>
               </div>
-            )}
-            {product.metadata?.derivedAgeRangeMonths && (
-              <div className="flex justify-between items-center pb-2 border-b border-stone-100">
-                <span className="text-[11px] font-bold text-stone-400">단계 기준 예상 월령</span>
-                <span className="text-xs font-bold text-stone-500">
-                  {product.metadata.derivedAgeRangeMonths[0]}~{product.metadata.derivedAgeRangeMonths[1]}개월
-                </span>
-              </div>
-            )}
-            {product.nutrients.map((n, i) => (
-              <div key={i} className="flex justify-between items-center">
-                <span className="text-[11px] font-bold text-stone-500">{n.name}</span>
-                <span className="text-xs font-bold text-stone-800">{n.amount}{n.unit}</span>
-              </div>
-            ))}
-          </div>
+            </div>
+          )}
 
-          {/* 탐색 진입 버튼 — activeAxes 기반 3-way 분기
-              · nutrient-overlap: 건기식 → 비슷한 제품 비교 탐색
-              · stage: formula → 단계 필터로 좁혀보기
-              · 없음(milk/cheese): 현재 비교 방식 미지원 안내 */}
+          {/* 탐색 진입 버튼 */}
           {canCompare ? (
             <button
               onClick={() => onSetAsReference(product)}
@@ -327,7 +375,7 @@ function MobileProductCard({
             </div>
           ) : null}
 
-          {/* 유사 성분 제품 미리보기 (아코디언 내, 건기식만) */}
+          {/* 유사 성분 제품 미리보기 */}
           {similarList.length > 0 && (
             <div>
               <p className="text-[10px] font-extrabold text-stone-400 mb-2">
@@ -369,7 +417,6 @@ function MobileProductCard({
 }
 
 // ─── 컨텍스트 배너 (축약형) ──────────────────────────────────────────────────
-// 탐색 맥락을 1줄로 요약 — 월령/시기 + 살펴볼 영양소 칩
 function SearchContextBanner({
   monthsOld,
   selectedProducts,
@@ -411,24 +458,24 @@ function SearchContextBanner({
 }
 
 // ─── 메인 컴포넌트 ────────────────────────────────────────────────────────────
-// URL category param → CategoryFilter 매핑
-// formula/milk/cheese/routine → "routine", supplement → "supplement", 그 외 → "all"
 function resolveInitialCategory(category: string | undefined): CategoryFilter {
   if (!category) return "all"
   if (category === "supplement") return "supplement"
-  if (["formula", "milk", "cheese", "routine"].includes(category)) return "routine"
+  if (category === "formula") return "formula"
+  if (category === "milk") return "milk"
+  if (category === "cheese") return "cheese"
+  if (category === "routine") return "formula"
   return "all"
 }
 
 export default function SearchClient({
   initialProducts,
-  initialCanonicalProducts,
+  canonicalFormulaProducts,
   initialNutrient,
   initialCategory,
 }: {
   initialProducts: Product[]
-  /** Phase 4B: canonical_product 테이블 레코드. "분유·루틴" 탭에서 별도 섹션으로 표시. */
-  initialCanonicalProducts?: CanonicalProduct[]
+  canonicalFormulaProducts?: Product[]
   initialNutrient?: string
   initialCategory?: string
 }) {
@@ -442,9 +489,7 @@ export default function SearchClient({
   const [isSearching, setIsSearching]       = useState(false)
   const [expandedIds, setExpandedIds]       = useState<Set<number>>(new Set())
   const [volumeModal, setVolumeModal]       = useState<Product | null>(null)
-  // 대안 탐색 기준 제품 (Axis B — supplement nutrient-overlap)
   const [referenceProduct, setReferenceProduct] = useState<Product | null>(null)
-  // 분유 단계 필터 (Axis stage — formula only, null=전체)
   const [stageFilter, setStageFilter]           = useState<number | null>(null)
 
   const colorMap = new Map(
@@ -453,20 +498,26 @@ export default function SearchClient({
       .map((p, i) => [p.id, PRODUCT_COLORS[i % PRODUCT_COLORS.length]])
   )
 
+  // ── ROUTINE_PRODUCTS + canonical 분유 병합 ─────────────────────────────────
+  // 기존 mock 분유는 ROUTINE_PRODUCTS에서 milk/cheese만 남기고
+  // canonical 변환 분유를 합산
+  const allRoutineProducts = useMemo(() => {
+    const milkAndCheese = ROUTINE_PRODUCTS.filter(p => p.category !== "formula")
+    const mockFormula   = ROUTINE_PRODUCTS.filter(p => p.category === "formula")
+    const canonical     = canonicalFormulaProducts ?? []
+    return [...mockFormula, ...canonical, ...milkAndCheese]
+  }, [canonicalFormulaProducts])
+
   // ── 디바운스 ─────────────────────────────────────────────────────────────
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQuery(searchQuery), 300)
     return () => clearTimeout(t)
   }, [searchQuery])
 
-  // 외부 진입(Home) 맥락 — initialCategory 변경 시 탭 동기화
-  // 사용자가 탭을 직접 클릭해 변경할 수 있으며, 강제 고정이 아님
   useEffect(() => {
     setCategoryFilter(resolveInitialCategory(initialCategory))
   }, [initialCategory])
 
-  // 외부 진입(Home/Record) 맥락 — initialNutrient 변경 시 필터 동기화
-  // 사용자가 "전체보기" 클릭 등으로 직접 해제할 수 있으며, 강제 고정이 아님
   useEffect(() => {
     if (initialNutrient) {
       setActiveNutrient(initialNutrient)
@@ -474,12 +525,11 @@ export default function SearchClient({
     }
   }, [initialNutrient])
 
-  // 텍스트 검색 시작 → 기준 제품 비교 모드 해제 (stageFilter는 검색과 공존 가능)
   useEffect(() => {
     if (searchQuery) setReferenceProduct(null)
   }, [searchQuery])
 
-  // ── 검색 (Supabase, 기존 유지) ────────────────────────────────────────────
+  // ── 검색 (Supabase) ──────────────────────────────────────────────────────
   useEffect(() => {
     const term = debouncedQuery.trim()
     if (!term) {
@@ -500,8 +550,6 @@ export default function SearchClient({
   }, [debouncedQuery, initialProducts])
 
   // ── 전체 제품 풀 (유사 제품 계산용) ─────────────────────────────────────
-  // supplement DB 제품에 고신뢰 metadata/subtype을 보수적으로 seed.
-  // ROUTINE_PRODUCTS는 routine_foods.ts에서 이미 seed됨.
   const allProductsPool = useMemo(() => {
     const supplements = dbProducts.map((p) => {
       const withCategory = { ...p, category: p.category ?? ("supplement" as ProductCategory) }
@@ -511,12 +559,11 @@ export default function SearchClient({
         metadata: deriveProductMetadata(withCategory),
       }
     })
-    return [...supplements, ...ROUTINE_PRODUCTS]
-  }, [dbProducts])
+    return [...supplements, ...allRoutineProducts]
+  }, [dbProducts, allRoutineProducts])
 
   // ── 표시할 제품 목록 ──────────────────────────────────────────────────────
   const displayedProducts = useMemo(() => {
-    // 비교 기준 모드: 기준 제품과 유사한 제품 최대 5개
     if (referenceProduct) {
       return getSimilarProducts(referenceProduct, allProductsPool, 5).map(({ product }) => product)
     }
@@ -527,24 +574,38 @@ export default function SearchClient({
       category: p.category ?? ("supplement" as ProductCategory),
     }))
     const routines = term
-      ? ROUTINE_PRODUCTS.filter((p) =>
+      ? allRoutineProducts.filter((p) =>
           p.product_name.toLowerCase().includes(term) ||
           (p.manufacturer ?? "").toLowerCase().includes(term)
         )
-      : ROUTINE_PRODUCTS
+      : allRoutineProducts
 
-    let combined: Product[] =
-      categoryFilter === "all"
-        ? [...supplements, ...routines]
-        : categoryFilter === "supplement"
-        ? supplements
-        : routines
+    let combined: Product[]
+    switch (categoryFilter) {
+      case "all":
+        combined = [...supplements, ...routines]
+        break
+      case "supplement":
+        combined = supplements
+        break
+      case "formula":
+        combined = routines.filter(p => p.category === "formula")
+        break
+      case "milk":
+        combined = routines.filter(p => p.category === "milk")
+        break
+      case "cheese":
+        combined = routines.filter(p => p.category === "cheese")
+        break
+      default:
+        combined = [...supplements, ...routines]
+    }
 
     if (activeNutrient) {
       combined = combined.filter((p) => p.nutrients.some((n) => n.name === activeNutrient))
     }
 
-    // 단계 필터: formula 제품만 해당 단계로 좁힘. milk/cheese/supplement는 영향 없음.
+    // 단계 필터: formula 제품만 해당 단계로 좁힘
     if (stageFilter !== null) {
       combined = combined.filter(
         (p) => p.category !== "formula" || p.metadata?.formulaStage === stageFilter,
@@ -552,10 +613,9 @@ export default function SearchClient({
     }
 
     return combined
-  }, [referenceProduct, dbProducts, debouncedQuery, categoryFilter, activeNutrient, stageFilter, allProductsPool])
+  }, [referenceProduct, dbProducts, debouncedQuery, categoryFilter, activeNutrient, stageFilter, allProductsPool, allRoutineProducts])
 
-  // ── formula 단계별 제품 수 (stage 칩 개수 표시용) ────────────────────────
-  // allProductsPool은 dbProducts 기반으로 재계산되므로 useMemo 의존성에 포함
+  // ── formula 단계별 제품 수 ────────────────────────────────────────────────
   const stageProductCounts = useMemo(() => {
     const counts: Record<number, number> = {}
     for (const p of allProductsPool) {
@@ -567,7 +627,7 @@ export default function SearchClient({
     return counts
   }, [allProductsPool])
 
-  // ── 영양소 필터 순서: 아직 살펴보지 않은 영양소를 앞으로 ────────────────
+  // ── 영양소 필터 순서 ──────────────────────────────────────────────────────
   const gaps = useMemo(
     () => getNutrientGaps(selectedProducts, monthsOld),
     [selectedProducts, monthsOld]
@@ -616,15 +676,24 @@ export default function SearchClient({
     setReferenceProduct(product)
   }
 
-  // formula 카드 아코디언에서 "X단계 분유만 보기" 클릭 시
   const handleStageFilter = (stage: number) => {
     setActiveNutrient(null)
     setReferenceProduct(null)
-    setCategoryFilter("routine")     // formula가 보이는 탭으로 자동 이동
-    setStageFilter((prev) => (prev === stage ? null : stage))   // 같은 단계 재클릭 → 해제
+    setCategoryFilter("formula")
+    setStageFilter((prev) => (prev === stage ? null : stage))
   }
 
-  const routineSelectedCount = selectedProducts.filter(isRoutineProduct).length
+  const formulaSelectedCount = selectedProducts.filter(p => p.category === "formula").length
+  const milkSelectedCount    = selectedProducts.filter(p => p.category === "milk").length
+  const cheeseSelectedCount  = selectedProducts.filter(p => p.category === "cheese").length
+
+  const CATEGORY_TABS: { key: CategoryFilter; label: string; activeClass: string }[] = [
+    { key: "all",        label: "전체",     activeClass: "bg-stone-800 text-white" },
+    { key: "supplement", label: "💊 건기식", activeClass: "bg-stone-800 text-white" },
+    { key: "formula",    label: `🍼 분유${formulaSelectedCount > 0 ? ` (${formulaSelectedCount})` : ""}`,  activeClass: "bg-blue-500 text-white" },
+    { key: "milk",       label: `🥛 우유${milkSelectedCount > 0 ? ` (${milkSelectedCount})` : ""}`,        activeClass: "bg-blue-500 text-white" },
+    { key: "cheese",     label: `🧀 치즈${cheeseSelectedCount > 0 ? ` (${cheeseSelectedCount})` : ""}`,    activeClass: "bg-blue-500 text-white" },
+  ]
 
   return (
     <div className="h-full flex flex-col bg-[#FFFBF7]">
@@ -666,9 +735,8 @@ export default function SearchClient({
         </div>
 
         {/* 카테고리 탭 + 모드 표시 */}
-        <div className="flex items-center gap-2 mb-3">
+        <div className="flex items-center gap-2 mb-3 overflow-x-auto scrollbar-hide">
           {referenceProduct ? (
-            // 건기식 비교 탐색 모드
             <div className="flex items-center gap-2 w-full">
               <span className="text-[11px] font-bold text-orange-500 bg-orange-50 border border-orange-200 px-3 py-1.5 rounded-xl">
                 비슷한 제품 탐색 중
@@ -681,7 +749,6 @@ export default function SearchClient({
               </button>
             </div>
           ) : stageFilter !== null ? (
-            // 분유 단계 필터 모드
             <div className="flex items-center gap-2 w-full">
               <span className="text-[11px] font-bold text-blue-500 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-xl">
                 {stageFilter}단계 분유 보는 중
@@ -694,21 +761,13 @@ export default function SearchClient({
               </button>
             </div>
           ) : (
-            (
-              [
-                { key: "all", label: "전체" },
-                { key: "supplement", label: "💊 건기식" },
-                { key: "routine", label: `🍼 분유·우유·치즈${routineSelectedCount > 0 ? ` (${routineSelectedCount})` : ""}` },
-              ] as { key: CategoryFilter; label: string }[]
-            ).map(({ key, label }) => (
+            CATEGORY_TABS.map(({ key, label, activeClass }) => (
               <button
                 key={key}
                 onClick={() => setCategoryFilter(key)}
-                className={`px-3 py-1.5 rounded-xl text-[12px] font-bold whitespace-nowrap transition-colors ${
+                className={`px-3 py-1.5 rounded-xl text-[12px] font-bold whitespace-nowrap transition-colors shrink-0 ${
                   categoryFilter === key
-                    ? key === "routine"
-                      ? "bg-blue-500 text-white"
-                      : "bg-stone-800 text-white"
+                    ? activeClass
                     : "bg-white border border-stone-200 text-stone-500"
                 }`}
               >
@@ -718,15 +777,14 @@ export default function SearchClient({
           )}
         </div>
 
-        {/* 단계 필터 — formula 맥락에서만 표시
-            조건: "routine" 탭이거나 이미 stageFilter가 켜진 상태 (formula 탐색 의도 명확)
-            "all" 탭에서는 supplement와 혼재해 stage 칩이 맥락 밖으로 느껴지므로 숨김 */}
+        {/* 단계 필터 — formula 탭에서만 */}
         {!referenceProduct && !debouncedQuery &&
-          (categoryFilter === "routine" || stageFilter !== null) && (
+          (categoryFilter === "formula" || stageFilter !== null) && (
           <div className="flex items-center gap-1.5 mb-2 overflow-x-auto scrollbar-hide">
-            <span className="text-[10px] font-bold text-stone-400 shrink-0">분유 단계</span>
-            {[1, 2, 3].map((stage) => {
+            <span className="text-[10px] font-bold text-stone-400 shrink-0">단계</span>
+            {[0, 1, 2, 3].map((stage) => {
               const count = stageProductCounts[stage] ?? 0
+              const label = stage === 0 ? "PRE" : `${stage}단계`
               return (
                 <button
                   key={stage}
@@ -737,7 +795,7 @@ export default function SearchClient({
                       : "bg-white border border-stone-200 text-stone-500 hover:border-blue-300 hover:text-blue-500"
                   }`}
                 >
-                  {stage}단계{count > 0 ? `(${count})` : ""}
+                  {label}{count > 0 ? `(${count})` : ""}
                 </button>
               )
             })}
@@ -752,7 +810,7 @@ export default function SearchClient({
           </div>
         )}
 
-        {/* 영양소 필터 — 건기식 탭일 때만 노출 */}
+        {/* 영양소 필터 — 건기식 탭일 때만 */}
         {!referenceProduct && categoryFilter === "supplement" && (
           <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
             <button
@@ -791,7 +849,7 @@ export default function SearchClient({
       {/* ── 스크롤 영역 ── */}
       <div className="flex-1 overflow-y-auto scrollbar-hide">
 
-        {/* 축약 컨텍스트 바 — 기본 탐색 모드일 때만 */}
+        {/* 축약 컨텍스트 바 */}
         {!debouncedQuery && !referenceProduct && stageFilter === null && (
           <SearchContextBanner
             monthsOld={monthsOld}
@@ -832,21 +890,6 @@ export default function SearchClient({
           </div>
         )}
 
-        {/* ── Canonical 분유 섹션 ──
-            "분유·루틴" 탭 + 기준제품 비교 모드가 아닐 때 노출.
-            텍스트 검색 시에도 표시 (카탈로그 내 필터는 내부에서 처리).
-            stageFilter 활성 시에도 표시.
-            기존 products 목록과 완전 분리 — 섞지 않음. */}
-        {categoryFilter === "routine" &&
-          !referenceProduct &&
-          initialCanonicalProducts &&
-          initialCanonicalProducts.length > 0 && (
-            <CanonicalFormulaSection
-              products={initialCanonicalProducts}
-              stageFilter={stageFilter}
-            />
-          )}
-
         <div className="px-5 pb-4 pt-3 flex flex-col gap-3">
           {/* 모드별 결과 헤더 */}
           {referenceProduct && displayedProducts.length > 0 && (
@@ -856,7 +899,7 @@ export default function SearchClient({
           )}
           {stageFilter !== null && !referenceProduct && displayedProducts.length > 0 && (
             <p className="text-[11px] font-bold text-blue-400 text-center py-1">
-              {stageFilter}단계 분유 {displayedProducts.filter((p) => p.category === "formula").length}개 포함
+              {stageFilter === 0 ? "PRE" : stageFilter}단계 분유 {displayedProducts.filter((p) => p.category === "formula").length}개
             </p>
           )}
 
@@ -870,7 +913,7 @@ export default function SearchClient({
                       : "공통 성분이 있는 다른 제품을 찾지 못했어요"
                   })()
                 : stageFilter !== null
-                ? `${stageFilter}단계 분유 제품이 없어요`
+                ? `${stageFilter === 0 ? "PRE" : stageFilter}단계 분유 제품이 없어요`
                 : activeNutrient
                 ? `"${activeNutrient}" 성분이 포함된 제품이 없습니다`
                 : searchQuery

@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase/client"
 import { listCanonicalProducts } from "@/lib/canonical_products"
+import { canonicalProductsToProducts } from "@/lib/canonical_to_product"
 import SearchClient from "../_components/SearchClient"
 import type { Product } from "@/lib/types"
 
@@ -26,10 +27,14 @@ export default async function SearchPage({
     listCanonicalProducts(),
     searchParams,
   ])
+
+  // canonical_product → Product 변환 후 병합
+  const canonicalAsProducts = canonicalProductsToProducts(canonicalProducts)
+
   return (
     <SearchClient
       initialProducts={products}
-      initialCanonicalProducts={canonicalProducts}
+      canonicalFormulaProducts={canonicalAsProducts}
       initialNutrient={nutrient}
       initialCategory={category}
     />
