@@ -491,6 +491,7 @@ export default function SearchClient({
   const [volumeModal, setVolumeModal]       = useState<Product | null>(null)
   const [referenceProduct, setReferenceProduct] = useState<Product | null>(null)
   const [stageFilter, setStageFilter]           = useState<number | null>(null)
+  const [originFilter, setOriginFilter]         = useState<"all" | "domestic" | "overseas">("all")
 
   const colorMap = new Map(
     selectedProducts
@@ -608,8 +609,17 @@ export default function SearchClient({
       )
     }
 
+    // 국내/해외 필터: formula 제품만 적용
+    if (originFilter !== "all") {
+      combined = combined.filter((p) => {
+        if (p.category !== "formula") return true
+        const isDomestic = (p.manufacturer ?? "").includes("한국")
+        return originFilter === "domestic" ? isDomestic : !isDomestic
+      })
+    }
+
     return combined
-  }, [referenceProduct, dbProducts, debouncedQuery, categoryFilter, activeNutrient, stageFilter, allProductsPool, allRoutineProducts])
+  }, [referenceProduct, dbProducts, debouncedQuery, categoryFilter, activeNutrient, stageFilter, originFilter, allProductsPool, allRoutineProducts])
 
   // ── formula 단계별 제품 수 ────────────────────────────────────────────────
   const stageProductCounts = useMemo(() => {
@@ -673,9 +683,8 @@ export default function SearchClient({
   }
 
   const handleStageFilter = (stage: number) => {
-    setActiveNutrient(null)
     setReferenceProduct(null)
-    setCategoryFilter("formula")
+    if (categoryFilter !== "formula") setCategoryFilter("formula")
     setStageFilter((prev) => (prev === stage ? null : stage))
   }
 
@@ -730,37 +739,16 @@ export default function SearchClient({
           )}
         </div>
 
-        {/* 카테고리 탭 + 모드 표시 */}
-        <div className="flex items-center gap-2 mb-3 overflow-x-auto scrollbar-hide">
-          {referenceProduct ? (
-            <div className="flex items-center gap-2 w-full">
-              <span className="text-[11px] font-bold text-orange-500 bg-orange-50 border border-orange-200 px-3 py-1.5 rounded-xl">
-                비슷한 제품 탐색 중
-              </span>
-              <button
-                onClick={() => setReferenceProduct(null)}
-                className="ml-auto text-[11px] font-bold text-stone-400 hover:text-stone-600"
-              >
-                전체 목록으로
-              </button>
-            </div>
-          ) : stageFilter !== null ? (
-            <div className="flex items-center gap-2 w-full">
-              <span className="text-[11px] font-bold text-blue-500 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-xl">
-                {stageFilter}단계 분유 보는 중
-              </span>
-              <button
-                onClick={() => setStageFilter(null)}
-                className="ml-auto text-[11px] font-bold text-stone-400 hover:text-stone-600"
-              >
-                전체 목록으로
-              </button>
-            </div>
-          ) : (
-            CATEGORY_TABS.map(({ key, label, activeClass }) => (
+        {/* 카테고리 탭 — 항상 표시 */}
+        {!referenceProduct ? (
+          <div className="flex items-center gap-2 mb-3 overflow-x-auto scrollbar-hide">
+            {CATEGORY_TABS.map(({ key, label, activeClass }) => (
               <button
                 key={key}
-                onClick={() => setCategoryFilter(key)}
+                onClick={() => {
+                  setCategoryFilter(key)
+                  if (key !== "formula") { setStageFilter(null); setOriginFilter("all") }
+                }}
                 className={`px-3 py-1.5 rounded-xl text-[12px] font-bold whitespace-nowrap transition-colors shrink-0 ${
                   categoryFilter === key
                     ? activeClass
@@ -769,40 +757,75 @@ export default function SearchClient({
               >
                 {label}
               </button>
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-[11px] font-bold text-orange-500 bg-orange-50 border border-orange-200 px-3 py-1.5 rounded-xl">
+              비슷한 제품 탐색 중
+            </span>
+            <button
+              onClick={() => setReferenceProduct(null)}
+              className="ml-auto text-[11px] font-bold text-stone-400 hover:text-stone-600"
+            >
+              전체 목록으로
+            </button>
+          </div>
+        )}
 
-        {/* 단계 필터 — formula 탭에서만 */}
-        {!referenceProduct && !debouncedQuery &&
-          (categoryFilter === "formula" || stageFilter !== null) && (
-          <div className="flex items-center gap-1.5 mb-2 overflow-x-auto scrollbar-hide">
-            <span className="text-[10px] font-bold text-stone-400 shrink-0">단계</span>
-            {[0, 1, 2, 3].map((stage) => {
-              const count = stageProductCounts[stage] ?? 0
-              const label = stage === 0 ? "PRE" : `${stage}단계`
-              return (
+        {/* 분유 하위 필터: 단계 + 국내/해외 — formula 탭에서만 */}
+        {!referenceProduct && !debouncedQuery && categoryFilter === "formula" && (
+          <div className="flex flex-col gap-2 mb-2">
+            {/* 단계 필터 */}
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
+              <span className="text-[10px] font-bold text-stone-400 shrink-0">단계</span>
+              {[0, 1, 2, 3].map((stage) => {
+                const count = stageProductCounts[stage] ?? 0
+                const label = stage === 0 ? "PRE" : `${stage}단계`
+                return (
+                  <button
+                    key={stage}
+                    onClick={() => handleStageFilter(stage)}
+                    className={`px-2.5 py-1 rounded-xl text-[12px] font-bold whitespace-nowrap transition-colors shrink-0 ${
+                      stageFilter === stage
+                        ? "bg-blue-500 text-white"
+                        : "bg-white border border-stone-200 text-stone-500 hover:border-blue-300 hover:text-blue-500"
+                    }`}
+                  >
+                    {label}{count > 0 ? `(${count})` : ""}
+                  </button>
+                )
+              })}
+              {stageFilter !== null && (
                 <button
-                  key={stage}
-                  onClick={() => handleStageFilter(stage)}
+                  onClick={() => setStageFilter(null)}
+                  className="text-[11px] font-bold text-stone-400 hover:text-stone-600 shrink-0"
+                >
+                  전체
+                </button>
+              )}
+            </div>
+            {/* 국내/해외 필터 */}
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
+              <span className="text-[10px] font-bold text-stone-400 shrink-0">원산지</span>
+              {([
+                { key: "all",      label: "전체" },
+                { key: "domestic", label: "🇰🇷 국내" },
+                { key: "overseas", label: "🌍 해외" },
+              ] as { key: "all" | "domestic" | "overseas"; label: string }[]).map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => setOriginFilter(key)}
                   className={`px-2.5 py-1 rounded-xl text-[12px] font-bold whitespace-nowrap transition-colors shrink-0 ${
-                    stageFilter === stage
+                    originFilter === key
                       ? "bg-blue-500 text-white"
                       : "bg-white border border-stone-200 text-stone-500 hover:border-blue-300 hover:text-blue-500"
                   }`}
                 >
-                  {label}{count > 0 ? `(${count})` : ""}
+                  {label}
                 </button>
-              )
-            })}
-            {stageFilter !== null && (
-              <button
-                onClick={() => setStageFilter(null)}
-                className="text-[11px] font-bold text-stone-400 hover:text-stone-600 shrink-0"
-              >
-                전체
-              </button>
-            )}
+              ))}
+            </div>
           </div>
         )}
 
@@ -846,7 +869,7 @@ export default function SearchClient({
       <div className="flex-1 overflow-y-auto scrollbar-hide">
 
         {/* 축약 컨텍스트 바 */}
-        {!debouncedQuery && !referenceProduct && stageFilter === null && (
+        {!debouncedQuery && !referenceProduct && (
           <SearchContextBanner
             monthsOld={monthsOld}
             selectedProducts={selectedProducts}
