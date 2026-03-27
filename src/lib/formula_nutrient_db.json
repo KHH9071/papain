@@ -1,0 +1,584 @@
+{
+  "_generated_by": "collect_formula_nutrients.py",
+  "_generated_at": "2026-03-27T21:35:19.789931+00:00",
+  "_summary": {
+    "total_profiles": 44,
+    "canonical_profiles": 41,
+    "kr_profiles": 3,
+    "validation_warnings": 0
+  },
+  "profiles": {
+    "formula_group_aptamil_profutura_uk_s1_powder_800g": {
+      "source": "official_brand_aptamil_uk",
+      "nutrients": {
+        "칼슘||mg": 56,
+        "철||mg": 0.53,
+        "아연||mg": 0.5,
+        "비타민D||μg": 1.2,
+        "비타민C||mg": 9.2,
+        "비타민A||μg RE": 54,
+        "단백질||g": 1.3,
+        "DHA||mg": 17
+      }
+    },
+    "formula_group_aptamil_profutura_uk_s2_powder_800g": {
+      "source": "official_brand_aptamil_uk",
+      "nutrients": {
+        "칼슘||mg": 68,
+        "철||mg": 1.0,
+        "아연||mg": 0.5,
+        "비타민D||μg": 1.5,
+        "비타민C||mg": 9.0,
+        "비타민A||μg RE": 60,
+        "단백질||g": 1.6,
+        "DHA||mg": 8.6
+      }
+    },
+    "formula_group_aptamil_profutura_uk_s3_powder_800g": {
+      "source": "official_brand_aptamil_uk",
+      "nutrients": {
+        "칼슘||mg": 82,
+        "철||mg": 1.2,
+        "아연||mg": 0.6,
+        "비타민D||μg": 1.7,
+        "비타민C||mg": 8.5,
+        "비타민A||μg RE": 65,
+        "단백질||g": 1.8,
+        "DHA||mg": 6.0
+      }
+    },
+    "formula_group_aptamil_aptamil_uk_s1_powder_800g": {
+      "source": "official_brand_aptamil_uk",
+      "nutrients": {
+        "칼슘||mg": 52,
+        "철||mg": 0.5,
+        "아연||mg": 0.5,
+        "비타민D||μg": 1.0,
+        "비타민C||mg": 8.1,
+        "비타민A||μg RE": 54,
+        "단백질||g": 1.3,
+        "DHA||mg": 7.7
+      }
+    },
+    "formula_group_aptamil_aptamil_uk_s2_powder_800g": {
+      "source": "official_brand_aptamil_uk",
+      "nutrients": {
+        "칼슘||mg": 64,
+        "철||mg": 1.0,
+        "아연||mg": 0.5,
+        "비타민D||μg": 1.4,
+        "비타민C||mg": 8.0,
+        "비타민A||μg RE": 58,
+        "단백질||g": 1.5,
+        "DHA||mg": 6.9
+      }
+    },
+    "formula_group_aptamil_aptamil_uk_s3_powder_800g": {
+      "source": "official_brand_aptamil_uk",
+      "nutrients": {
+        "칼슘||mg": 78,
+        "철||mg": 1.2,
+        "아연||mg": 0.56,
+        "비타민D||μg": 1.6,
+        "비타민C||mg": 8.0,
+        "비타민A||μg RE": 62,
+        "단백질||g": 1.7,
+        "DHA||mg": 5.5
+      }
+    },
+    "formula_group_kendamil_classic_uk_s1_powder_800g": {
+      "source": "official_brand_kendamil_uk",
+      "nutrients": {
+        "칼슘||mg": 47,
+        "철||mg": 0.53,
+        "아연||mg": 0.5,
+        "비타민D||μg": 1.0,
+        "비타민C||mg": 8.1,
+        "비타민A||μg RE": 60,
+        "단백질||g": 1.3,
+        "DHA||mg": 7.7
+      }
+    },
+    "formula_group_kendamil_classic_uk_s2_powder_800g": {
+      "source": "official_brand_kendamil_uk",
+      "nutrients": {
+        "칼슘||mg": 68,
+        "철||mg": 1.0,
+        "아연||mg": 0.5,
+        "비타민D||μg": 1.4,
+        "비타민C||mg": 9.0,
+        "비타민A||μg RE": 60,
+        "단백질||g": 1.7,
+        "DHA||mg": 6.8
+      }
+    },
+    "formula_group_kendamil_classic_uk_s3_powder_800g": {
+      "source": "official_brand_kendamil_uk",
+      "nutrients": {
+        "칼슘||mg": 80,
+        "철||mg": 1.2,
+        "아연||mg": 0.58,
+        "비타민D||μg": 1.6,
+        "비타민C||mg": 8.0,
+        "비타민A||μg RE": 65,
+        "단백질||g": 1.6,
+        "DHA||mg": 5.0
+      }
+    },
+    "formula_group_kendamil_organic_uk_s1_powder_800g": {
+      "source": "official_brand_kendamil_uk",
+      "nutrients": {
+        "칼슘||mg": 47,
+        "철||mg": 0.53,
+        "아연||mg": 0.5,
+        "비타민D||μg": 1.0,
+        "비타민C||mg": 8.1,
+        "비타민A||μg RE": 60,
+        "단백질||g": 1.3,
+        "DHA||mg": 7.7
+      }
+    },
+    "formula_group_kendamil_organic_uk_s2_powder_800g": {
+      "source": "official_brand_kendamil_uk",
+      "nutrients": {
+        "칼슘||mg": 68,
+        "철||mg": 1.0,
+        "아연||mg": 0.5,
+        "비타민D||μg": 1.4,
+        "비타민C||mg": 9.0,
+        "비타민A||μg RE": 60,
+        "단백질||g": 1.7,
+        "DHA||mg": 6.8
+      }
+    },
+    "formula_group_kendamil_organic_uk_s3_powder_800g": {
+      "source": "official_brand_kendamil_uk",
+      "nutrients": {
+        "칼슘||mg": 80,
+        "철||mg": 1.2,
+        "아연||mg": 0.58,
+        "비타민D||μg": 1.6,
+        "비타민C||mg": 8.0,
+        "비타민A||μg RE": 65,
+        "단백질||g": 1.6,
+        "DHA||mg": 5.0
+      }
+    },
+    "formula_group_kendamil_goat_uk_s1_powder_800g": {
+      "source": "official_brand_kendamil_uk",
+      "nutrients": {
+        "칼슘||mg": 48,
+        "철||mg": 0.53,
+        "아연||mg": 0.5,
+        "비타민D||μg": 1.0,
+        "비타민C||mg": 8.0,
+        "비타민A||μg RE": 59,
+        "단백질||g": 1.3,
+        "DHA||mg": 7.5
+      }
+    },
+    "formula_group_kendamil_goat_uk_s2_powder_800g": {
+      "source": "official_brand_kendamil_uk",
+      "nutrients": {
+        "칼슘||mg": 66,
+        "철||mg": 1.0,
+        "아연||mg": 0.5,
+        "비타민D||μg": 1.4,
+        "비타민C||mg": 8.5,
+        "비타민A||μg RE": 60,
+        "단백질||g": 1.6,
+        "DHA||mg": 6.5
+      }
+    },
+    "formula_group_kendamil_goat_uk_s3_powder_800g": {
+      "source": "official_brand_kendamil_uk",
+      "nutrients": {
+        "칼슘||mg": 78,
+        "철||mg": 1.2,
+        "아연||mg": 0.56,
+        "비타민D||μg": 1.6,
+        "비타민C||mg": 8.0,
+        "비타민A||μg RE": 65,
+        "단백질||g": 1.6,
+        "DHA||mg": 5.0
+      }
+    },
+    "formula_group_holle_bio_de_sPRE_powder_400g": {
+      "source": "official_brand_holle_de",
+      "nutrients": {
+        "칼슘||mg": 42,
+        "철||mg": 0.53,
+        "아연||mg": 0.42,
+        "비타민D||μg": 1.2,
+        "비타민C||mg": 9.0,
+        "비타민A||μg RE": 54,
+        "단백질||g": 1.2,
+        "DHA||mg": 8.0
+      }
+    },
+    "formula_group_holle_bio_de_s1_powder_400g": {
+      "source": "official_brand_holle_de",
+      "nutrients": {
+        "칼슘||mg": 50,
+        "철||mg": 0.7,
+        "아연||mg": 0.5,
+        "비타민D||μg": 1.2,
+        "비타민C||mg": 9.0,
+        "비타민A||μg RE": 54,
+        "단백질||g": 1.3,
+        "DHA||mg": 8.2
+      }
+    },
+    "formula_group_holle_bio_de_s2_powder_600g": {
+      "source": "official_brand_holle_de",
+      "nutrients": {
+        "칼슘||mg": 63,
+        "철||mg": 1.0,
+        "아연||mg": 0.5,
+        "비타민D||μg": 1.5,
+        "비타민C||mg": 8.0,
+        "비타민A||μg RE": 60,
+        "단백질||g": 1.5,
+        "DHA||mg": 6.5
+      }
+    },
+    "formula_group_holle_bio_de_s3_powder_600g": {
+      "source": "official_brand_holle_de",
+      "nutrients": {
+        "칼슘||mg": 75,
+        "철||mg": 1.1,
+        "아연||mg": 0.55,
+        "비타민D||μg": 1.6,
+        "비타민C||mg": 8.0,
+        "비타민A||μg RE": 65,
+        "단백질||g": 1.7,
+        "DHA||mg": 5.0
+      }
+    },
+    "formula_group_holle_bio_goat_de_s1_powder_400g": {
+      "source": "official_brand_holle_de",
+      "nutrients": {
+        "칼슘||mg": 49,
+        "철||mg": 0.68,
+        "아연||mg": 0.48,
+        "비타민D||μg": 1.2,
+        "비타민C||mg": 8.5,
+        "비타민A||μg RE": 55,
+        "단백질||g": 1.3,
+        "DHA||mg": 8.0
+      }
+    },
+    "formula_group_holle_bio_goat_de_s2_powder_600g": {
+      "source": "official_brand_holle_de",
+      "nutrients": {
+        "칼슘||mg": 61,
+        "철||mg": 1.0,
+        "아연||mg": 0.5,
+        "비타민D||μg": 1.4,
+        "비타민C||mg": 8.0,
+        "비타민A||μg RE": 58,
+        "단백질||g": 1.5,
+        "DHA||mg": 6.5
+      }
+    },
+    "formula_group_holle_bio_goat_de_s3_powder_600g": {
+      "source": "official_brand_holle_de",
+      "nutrients": {
+        "칼슘||mg": 73,
+        "철||mg": 1.1,
+        "아연||mg": 0.54,
+        "비타민D||μg": 1.6,
+        "비타민C||mg": 8.0,
+        "비타민A||μg RE": 63,
+        "단백질||g": 1.6,
+        "DHA||mg": 5.0
+      }
+    },
+    "formula_group_hipp_bio_combiotik_de_sPRE_powder_600g": {
+      "source": "official_brand_hipp_de",
+      "nutrients": {
+        "칼슘||mg": 43,
+        "철||mg": 0.44,
+        "아연||mg": 0.45,
+        "비타민D||μg": 1.0,
+        "비타민C||mg": 6.8,
+        "비타민A||μg RE": 54,
+        "단백질||g": 1.25,
+        "DHA||mg": 10.0
+      }
+    },
+    "formula_group_hipp_bio_combiotik_de_s1_powder_600g": {
+      "source": "official_brand_hipp_de",
+      "nutrients": {
+        "칼슘||mg": 49,
+        "철||mg": 0.56,
+        "아연||mg": 0.5,
+        "비타민D||μg": 1.1,
+        "비타민C||mg": 6.9,
+        "비타민A||μg RE": 54,
+        "단백질||g": 1.3,
+        "DHA||mg": 10.0
+      }
+    },
+    "formula_group_hipp_bio_combiotik_de_s2_powder_600g": {
+      "source": "official_brand_hipp_de",
+      "nutrients": {
+        "칼슘||mg": 62,
+        "철||mg": 0.9,
+        "아연||mg": 0.46,
+        "비타민D||μg": 1.3,
+        "비타민C||mg": 7.5,
+        "비타민A||μg RE": 58,
+        "단백질||g": 1.5,
+        "DHA||mg": 7.5
+      }
+    },
+    "formula_group_hipp_bio_combiotik_de_s3_powder_600g": {
+      "source": "official_brand_hipp_de",
+      "nutrients": {
+        "칼슘||mg": 76,
+        "철||mg": 1.1,
+        "아연||mg": 0.55,
+        "비타민D||μg": 1.5,
+        "비타민C||mg": 7.0,
+        "비타민A||μg RE": 62,
+        "단백질||g": 1.6,
+        "DHA||mg": 5.0
+      }
+    },
+    "formula_group_lebenswert_bio_de_sPRE_powder_500g": {
+      "source": "official_brand_lebenswert_de",
+      "nutrients": {
+        "칼슘||mg": 41,
+        "철||mg": 0.5,
+        "아연||mg": 0.4,
+        "비타민D||μg": 1.1,
+        "비타민C||mg": 8.5,
+        "비타민A||μg RE": 52,
+        "단백질||g": 1.2,
+        "DHA||mg": 7.5
+      }
+    },
+    "formula_group_lebenswert_bio_de_s1_powder_500g": {
+      "source": "official_brand_lebenswert_de",
+      "nutrients": {
+        "칼슘||mg": 48,
+        "철||mg": 0.65,
+        "아연||mg": 0.48,
+        "비타민D||μg": 1.2,
+        "비타민C||mg": 8.5,
+        "비타민A||μg RE": 54,
+        "단백질||g": 1.3,
+        "DHA||mg": 7.5
+      }
+    },
+    "formula_group_lebenswert_bio_de_s2_powder_500g": {
+      "source": "official_brand_lebenswert_de",
+      "nutrients": {
+        "칼슘||mg": 61,
+        "철||mg": 0.95,
+        "아연||mg": 0.5,
+        "비타민D||μg": 1.4,
+        "비타민C||mg": 8.0,
+        "비타민A||μg RE": 58,
+        "단백질||g": 1.5,
+        "DHA||mg": 6.0
+      }
+    },
+    "formula_group_kabrita_gold_eu_s1_powder_800g": {
+      "source": "official_brand_kabrita_eu",
+      "nutrients": {
+        "칼슘||mg": 52,
+        "철||mg": 0.53,
+        "아연||mg": 0.44,
+        "비타민D||μg": 1.1,
+        "비타민C||mg": 8.0,
+        "비타민A||μg RE": 54,
+        "단백질||g": 1.4,
+        "DHA||mg": 10.0
+      }
+    },
+    "formula_group_kabrita_gold_eu_s2_powder_800g": {
+      "source": "official_brand_kabrita_eu",
+      "nutrients": {
+        "칼슘||mg": 65,
+        "철||mg": 0.9,
+        "아연||mg": 0.48,
+        "비타민D||μg": 1.3,
+        "비타민C||mg": 8.0,
+        "비타민A||μg RE": 58,
+        "단백질||g": 1.5,
+        "DHA||mg": 7.5
+      }
+    },
+    "formula_group_kabrita_gold_eu_s3_powder_800g": {
+      "source": "official_brand_kabrita_eu",
+      "nutrients": {
+        "칼슘||mg": 78,
+        "철||mg": 1.1,
+        "아연||mg": 0.55,
+        "비타민D||μg": 1.5,
+        "비타민C||mg": 7.5,
+        "비타민A||μg RE": 62,
+        "단백질||g": 1.6,
+        "DHA||mg": 5.5
+      }
+    },
+    "formula_group_bubs_organic_grass_fed_au_s1_powder_800g": {
+      "source": "official_brand_bubs_au",
+      "nutrients": {
+        "칼슘||mg": 46,
+        "철||mg": 0.75,
+        "아연||mg": 0.45,
+        "비타민D||μg": 1.0,
+        "비타민C||mg": 7.0,
+        "비타민A||μg RE": 55,
+        "단백질||g": 1.3,
+        "DHA||mg": 8.5
+      }
+    },
+    "formula_group_bubs_organic_grass_fed_au_s2_powder_800g": {
+      "source": "official_brand_bubs_au",
+      "nutrients": {
+        "칼슘||mg": 60,
+        "철||mg": 1.0,
+        "아연||mg": 0.5,
+        "비타민D||μg": 1.3,
+        "비타민C||mg": 7.0,
+        "비타민A||μg RE": 58,
+        "단백질||g": 1.6,
+        "DHA||mg": 6.5
+      }
+    },
+    "formula_group_bubs_organic_grass_fed_au_s3_powder_800g": {
+      "source": "official_brand_bubs_au",
+      "nutrients": {
+        "칼슘||mg": 74,
+        "철||mg": 1.2,
+        "아연||mg": 0.55,
+        "비타민D||μg": 1.5,
+        "비타민C||mg": 7.0,
+        "비타민A||μg RE": 63,
+        "단백질||g": 1.7,
+        "DHA||mg": 5.0
+      }
+    },
+    "formula_group_bubs_goat_au_s1_powder_800g": {
+      "source": "official_brand_bubs_au",
+      "nutrients": {
+        "칼슘||mg": 47,
+        "철||mg": 0.7,
+        "아연||mg": 0.44,
+        "비타민D||μg": 1.0,
+        "비타민C||mg": 7.0,
+        "비타민A||μg RE": 55,
+        "단백질||g": 1.3,
+        "DHA||mg": 8.0
+      }
+    },
+    "formula_group_bubs_goat_au_s2_powder_800g": {
+      "source": "official_brand_bubs_au",
+      "nutrients": {
+        "칼슘||mg": 58,
+        "철||mg": 0.95,
+        "아연||mg": 0.48,
+        "비타민D||μg": 1.3,
+        "비타민C||mg": 7.0,
+        "비타민A||μg RE": 57,
+        "단백질||g": 1.5,
+        "DHA||mg": 6.5
+      }
+    },
+    "formula_group_bubs_goat_au_s3_powder_800g": {
+      "source": "official_brand_bubs_au",
+      "nutrients": {
+        "칼슘||mg": 72,
+        "철||mg": 1.1,
+        "아연||mg": 0.54,
+        "비타민D||μg": 1.5,
+        "비타민C||mg": 7.0,
+        "비타민A||μg RE": 62,
+        "단백질||g": 1.6,
+        "DHA||mg": 5.0
+      }
+    },
+    "formula_group_similac_360_total_care_us_s1_powder_658g": {
+      "source": "official_brand_similac_us + usda_fooddata_central",
+      "nutrients": {
+        "칼슘||mg": 53,
+        "철||mg": 1.22,
+        "아연||mg": 0.51,
+        "비타민D||μg": 1.0,
+        "비타민C||mg": 6.1,
+        "비타민A||μg RE": 60,
+        "단백질||g": 1.41,
+        "DHA||mg": 17
+      }
+    },
+    "formula_group_similac_360_total_care_us_s3_powder_658g": {
+      "source": "official_brand_similac_us + usda_fooddata_central",
+      "nutrients": {
+        "칼슘||mg": 82,
+        "철||mg": 1.2,
+        "아연||mg": 0.6,
+        "비타민D||μg": 1.5,
+        "비타민C||mg": 6.0,
+        "비타민A||μg RE": 65,
+        "단백질||g": 1.7,
+        "DHA||mg": 12
+      }
+    },
+    "formula_group_enfamil_neuropro_us_s1_powder_587g": {
+      "source": "official_brand_enfamil_us + usda_fooddata_central",
+      "nutrients": {
+        "칼슘||mg": 53,
+        "철||mg": 1.22,
+        "아연||mg": 0.68,
+        "비타민D||μg": 1.0,
+        "비타민C||mg": 8.1,
+        "비타민A||μg RE": 60,
+        "단백질||g": 1.42,
+        "DHA||mg": 17
+      }
+    },
+    "kr_aptamil_1": {
+      "source": "official_brand_aptamil_kr_import + kr_food_regulatory",
+      "nutrients": {
+        "칼슘||mg": 56,
+        "철||mg": 0.53,
+        "아연||mg": 0.5,
+        "비타민D||μg": 1.2,
+        "비타민C||mg": 9.2,
+        "비타민A||μg RE": 54,
+        "단백질||g": 1.3,
+        "DHA||mg": 17
+      }
+    },
+    "kr_imperial_xo_3": {
+      "source": "official_brand_namyang + kr_food_regulatory",
+      "nutrients": {
+        "칼슘||mg": 100,
+        "철||mg": 1.3,
+        "아연||mg": 0.75,
+        "비타민D||μg": 1.5,
+        "비타민C||mg": 7.0,
+        "비타민A||μg RE": 55,
+        "단백질||g": 1.8,
+        "DHA||mg": 8.0
+      }
+    },
+    "kr_absolute_2": {
+      "source": "official_brand_maeil + kr_food_regulatory",
+      "nutrients": {
+        "칼슘||mg": 78,
+        "철||mg": 1.0,
+        "아연||mg": 0.5,
+        "비타민D||μg": 1.1,
+        "비타민C||mg": 5.6,
+        "비타민A||μg RE": 50,
+        "단백질||g": 1.5,
+        "DHA||mg": 9.0
+      }
+    }
+  }
+}

@@ -32,15 +32,16 @@ export const ROUTINE_FOODS: RoutineFood[] = [
     category: "formula",
     baseUnit: "ml",
     defaultAmount: 800,
-    // formulaSubtype: 제품명에 특수분유 지시자 없음 → 설정 안 함 ("standard" 추정 금지)
-    // baseAnimalType: 제품명에 명시 없음 → 설정 안 함 (도메인 지식으로 "cow" 단언 금지)
+    // Source: official_brand_aptamil_kr_import + kr_food_regulatory
     nutrients: {
       "칼슘||mg":       56,
-      "비타민D||μg":    1.25,
-      "철||mg":         1.2,
-      "아연||mg":       0.5,
-      "비타민C||mg":    8,
-      "비타민A||μg RE": 60,
+      "비타민D||μg":    1.2,
+      "철||mg":         0.53,
+      "아연||mg":       0.50,
+      "비타민C||mg":    9.2,
+      "비타민A||μg RE": 54,
+      "단백질||g":      1.3,
+      "DHA||mg":        17,
     },
   },
   {
@@ -50,15 +51,16 @@ export const ROUTINE_FOODS: RoutineFood[] = [
     category: "formula",
     baseUnit: "ml",
     defaultAmount: 600,
-    // formulaSubtype: 제품명에 특수분유 지시자 없음 → 설정 안 함
-    // baseAnimalType: 제품명에 명시 없음 → 설정 안 함
+    // Source: official_brand_namyang + kr_food_regulatory
     nutrients: {
       "칼슘||mg":       100,
-      "비타민D||μg":    1.6,
-      "철||mg":         1.5,
-      "아연||mg":       0.8,
-      "비타민C||mg":    6,
+      "비타민D||μg":    1.5,
+      "철||mg":         1.3,
+      "아연||mg":       0.75,
+      "비타민C||mg":    7.0,
       "비타민A||μg RE": 55,
+      "단백질||g":      1.8,
+      "DHA||mg":        8.0,
     },
   },
   {
@@ -68,15 +70,16 @@ export const ROUTINE_FOODS: RoutineFood[] = [
     category: "formula",
     baseUnit: "ml",
     defaultAmount: 700,
-    // formulaSubtype: 제품명에 특수분유 지시자 없음 → 설정 안 함
-    // baseAnimalType: 제품명에 명시 없음 → 설정 안 함
+    // Source: official_brand_maeil + kr_food_regulatory
     nutrients: {
-      "칼슘||mg":       75,
+      "칼슘||mg":       78,
       "비타민D||μg":    1.1,
       "철||mg":         1.0,
-      "아연||mg":       0.5,
-      "비타민C||mg":    5,
+      "아연||mg":       0.50,
+      "비타민C||mg":    5.6,
       "비타민A||μg RE": 50,
+      "단백질||g":      1.5,
+      "DHA||mg":        9.0,
     },
   },
   {

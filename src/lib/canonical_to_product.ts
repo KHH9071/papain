@@ -6,11 +6,12 @@
  * 동일하게 작동하도록 한다.
  *
  * - 한국어 브랜드/라인 매핑 포함
- * - 영양소 데이터가 없는 제품은 빈 배열 (UI에서 graceful 처리)
+ * - formula_nutrient_db.json에서 per-100ml 영양소 데이터 로드
  * - ID는 -100 이하 음수로 기존 ROUTINE_PRODUCTS(-1~-6)와 충돌 방지
  */
 
-import type { CanonicalProduct, Product, ProductMetadata } from "./types"
+import type { CanonicalProduct, Product, Nutrient, ProductMetadata } from "./types"
+import nutrientDb from "./formula_nutrient_db.json"
 
 // ── 한국어 브랜드명 매핑 ─────────────────────────────────────────────────────
 
@@ -59,6 +60,20 @@ const STAGE_AGE_RANGE: Record<string, [number, number] | undefined> = {
   unknown: undefined,
 }
 
+// ── 영양소 DB에서 Nutrient[] 변환 ─────────────────────────────────────────────
+
+type NutrientProfile = { source: string; nutrients: Record<string, number> }
+const profiles = (nutrientDb as { profiles: Record<string, NutrientProfile> }).profiles
+
+function getNutrients(canonicalProductId: string): Nutrient[] {
+  const profile = profiles[canonicalProductId]
+  if (!profile) return []
+  return Object.entries(profile.nutrients).map(([key, value]) => {
+    const [name, unit] = key.split("||")
+    return { name, amount: value, unit }
+  })
+}
+
 // ── 한국어 제품명 생성 ───────────────────────────────────────────────────────
 
 function buildKoreanName(cp: CanonicalProduct): string {
@@ -100,7 +115,7 @@ export function canonicalToProduct(cp: CanonicalProduct, index: number): Product
     serving_unit: "ml",
     category: "formula",
     base_unit: "ml" as const,
-    nutrients: [],
+    nutrients: getNutrients(cp.canonical_product_id),
     metadata,
   }
 }
