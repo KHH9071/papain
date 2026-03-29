@@ -120,8 +120,8 @@ export default function HomeClient() {
 
   // 상태 배지
   const statusInfo = (() => {
-    if (!hasProducts) return { text: "아직 시작 전이에요",       cls: "text-stone-400 bg-stone-100" }
-    if (exceededCount > 0) return { text: `${exceededCount}개 상한 초과`, cls: "text-rose-600 bg-rose-50" }
+    if (!hasProducts) return { text: "아직 시작 전이에요",       cls: "text-gray-400 bg-gray-100" }
+    if (exceededCount > 0) return { text: `${exceededCount}개 상한 초과`, cls: "text-red-600 bg-red-50" }
     if (underCount > 0)    return { text: `${underCount}개 더 살펴볼 수 있어요`, cls: "text-amber-600 bg-amber-50" }
     return { text: "설계가 잘 됐어요", cls: "text-emerald-600 bg-emerald-50" }
   })()
@@ -140,38 +140,38 @@ export default function HomeClient() {
   })()
 
   return (
-    <div className="h-full flex flex-col bg-[#FAFAF8]">
+    <div className="h-full flex flex-col bg-gray-50">
 
       {/* ── Compact 스티키 헤더 ── */}
-      <div className="flex-shrink-0 bg-white border-b border-stone-100 shadow-[0_2px_12px_rgb(0,0,0,0.04)] z-20 px-5 py-3">
+      <div className="flex-shrink-0 bg-white border-b border-gray-100 z-20 px-5 py-4">
         <div className="flex items-center justify-between">
 
           {/* 앱 정체성 */}
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-base leading-none select-none">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-xl leading-none select-none">
               👶
             </div>
             <div>
-              <h1 className="text-[13px] font-extrabold text-stone-800 leading-tight">우리아이 영양설계</h1>
-              <span className="text-[10px] font-medium text-stone-400">{AGE_GROUP_LABEL[ageGroup]}</span>
+              <h1 className="text-lg font-bold text-gray-900 leading-tight">우리아이 영양설계</h1>
+              <p className="text-xs text-gray-500 mt-0.5">{AGE_GROUP_LABEL[ageGroup]}</p>
             </div>
           </div>
 
           {/* 월령 선택 */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center bg-gray-100 rounded-full px-3 py-1.5">
             <button
               onClick={() => setMonthsOld(Math.max(MIN_MONTHS, monthsOld - 1))}
-              className="w-7 h-7 flex items-center justify-center rounded-full bg-stone-100 text-stone-500 font-bold text-sm active:bg-stone-200 transition-colors"
+              className="text-gray-400 hover:text-gray-700 font-medium px-1"
               aria-label="나이 줄이기"
             >
               −
             </button>
-            <span className="text-sm font-extrabold text-orange-500 w-12 text-center tabular-nums">
+            <span className="text-sm font-bold text-orange-600 px-2 tabular-nums">
               {monthsOld}개월
             </span>
             <button
               onClick={() => setMonthsOld(Math.min(MAX_MONTHS, monthsOld + 1))}
-              className="w-7 h-7 flex items-center justify-center rounded-full bg-stone-100 text-stone-500 font-bold text-sm active:bg-stone-200 transition-colors"
+              className="text-gray-400 hover:text-gray-700 font-medium px-1"
               aria-label="나이 늘리기"
             >
               +

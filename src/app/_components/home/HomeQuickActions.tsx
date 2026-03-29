@@ -18,20 +18,20 @@ const QUICK_ACTIONS: QuickAction[] = [
 
 export default function HomeQuickActions() {
   return (
-    <div className="mx-4 mt-3">
-      <p className="text-[10px] font-bold text-stone-400 mb-2">빠른 진입</p>
+    <section className="bg-white px-5 py-6 mb-2">
+      <p className="text-xs font-medium text-gray-400 mb-3">빠른 진입</p>
       <div className="grid grid-cols-4 gap-2">
         {QUICK_ACTIONS.map(({ label, href, icon }) => (
           <Link
             key={label}
             href={href}
-            className="flex flex-col items-center gap-1.5 bg-white border border-stone-100 rounded-2xl py-3 shadow-sm hover:border-orange-200 hover:bg-orange-50/50 transition-colors"
+            className="flex flex-col items-center gap-2 bg-gray-50 rounded-xl py-3.5 hover:bg-orange-50 transition-colors"
           >
             <span className="text-xl leading-none">{icon}</span>
-            <span className="text-[10px] font-extrabold text-stone-600 text-center leading-tight">{label}</span>
+            <span className="text-[11px] font-medium text-gray-700 text-center leading-tight">{label}</span>
           </Link>
         ))}
       </div>
-    </div>
+    </section>
   )
 }

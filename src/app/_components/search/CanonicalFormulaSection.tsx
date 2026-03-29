@@ -19,7 +19,7 @@ import type { CanonicalProduct, CanonicalProductCountryVersion } from "@/lib/typ
 const CONFIDENCE_STYLE: Record<string, { label: string; cls: string }> = {
   high:   { label: "고신뢰", cls: "bg-emerald-50 text-emerald-600 border-emerald-100" },
   medium: { label: "중신뢰", cls: "bg-amber-50  text-amber-600  border-amber-100"  },
-  low:    { label: "저신뢰", cls: "bg-stone-50  text-stone-400  border-stone-100"  },
+  low:    { label: "저신뢰", cls: "bg-gray-50  text-gray-400  border-gray-100"  },
 }
 
 const STAGE_LABEL: Record<string, string> = {
@@ -40,7 +40,7 @@ const EVIDENCE_STYLE: Record<string, { label: string; cls: string }> = {
   "Verified-B": { label: "B등급", cls: "bg-blue-50 text-blue-600" },
   "Verified-C": { label: "C등급", cls: "bg-amber-50 text-amber-500" },
   "Restricted":  { label: "제한", cls: "bg-red-50 text-red-500" },
-  "Unverified":  { label: "미검증", cls: "bg-stone-50 text-stone-400" },
+  "Unverified":  { label: "미검증", cls: "bg-gray-50 text-gray-400" },
 }
 
 // ── 단일 카드 (컴팩트) ───────────────────────────────────────────────────────
@@ -53,15 +53,15 @@ function CanonicalProductCard({ p }: { p: CanonicalProduct }) {
   const evStyle  = p.evidence_grade ? EVIDENCE_STYLE[p.evidence_grade] : null
 
   return (
-    <div className="bg-white rounded-xl border border-stone-100 px-3 py-2.5">
+    <div className="bg-white rounded-xl border border-gray-100 px-3 py-2.5">
       {/* 상단: 브랜드·라인 + 배지 */}
       <div className="flex items-start justify-between gap-2 mb-1.5">
         <div className="min-w-0">
-          <h3 className="font-extrabold text-[13px] text-stone-800 leading-tight truncate">
+          <h3 className="font-extrabold text-[13px] text-gray-800 leading-tight truncate">
             {p.line && p.line !== p.brand ? `${p.line}` : p.brand}
           </h3>
           {p.age_range_text && (
-            <p className="text-[9px] font-bold text-stone-400 mt-0.5">{p.age_range_text}</p>
+            <p className="text-[9px] font-bold text-gray-400 mt-0.5">{p.age_range_text}</p>
           )}
         </div>
         <div className="flex items-center gap-1 shrink-0">
@@ -81,14 +81,14 @@ function CanonicalProductCard({ p }: { p: CanonicalProduct }) {
         <span className="text-[9px] font-bold bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">
           {flag} {p.country_version}
         </span>
-        <span className="text-[9px] font-bold bg-stone-50 text-stone-500 border border-stone-100 px-1.5 py-0.5 rounded">
+        <span className="text-[9px] font-bold bg-gray-50 text-gray-500 border border-gray-100 px-1.5 py-0.5 rounded">
           {stageTxt}
         </span>
-        <span className="text-[9px] font-bold bg-stone-50 text-stone-500 border border-stone-100 px-1.5 py-0.5 rounded">
+        <span className="text-[9px] font-bold bg-gray-50 text-gray-500 border border-gray-100 px-1.5 py-0.5 rounded">
           {milkTxt}유
         </span>
         {p.form && p.form !== "unknown" && (
-          <span className="text-[9px] font-bold bg-stone-50 text-stone-500 border border-stone-100 px-1.5 py-0.5 rounded">
+          <span className="text-[9px] font-bold bg-gray-50 text-gray-500 border border-gray-100 px-1.5 py-0.5 rounded">
             {p.form === "powder" ? "분말" : p.form === "liquid" ? "액상" : p.form}
           </span>
         )}
@@ -98,14 +98,14 @@ function CanonicalProductCard({ p }: { p: CanonicalProduct }) {
           </span>
         )}
         {p.package_size_value && (
-          <span className="text-[9px] font-bold bg-stone-50 text-stone-500 border border-stone-100 px-1.5 py-0.5 rounded">
+          <span className="text-[9px] font-bold bg-gray-50 text-gray-500 border border-gray-100 px-1.5 py-0.5 rounded">
             {p.package_size_value}{p.package_size_unit}
           </span>
         )}
       </div>
 
       {/* 출처 */}
-      <p className="text-[8px] font-bold text-stone-300 mt-1.5">
+      <p className="text-[8px] font-bold text-gray-300 mt-1.5">
         {p.source_count}개 출처 검증
       </p>
     </div>
@@ -134,16 +134,16 @@ function BrandGroup({
         className="w-full flex items-center justify-between py-1.5"
       >
         <div className="flex items-center gap-2">
-          <span className="text-[12px] font-extrabold text-stone-700">
+          <span className="text-[12px] font-extrabold text-gray-700">
             {flag} {brand}
           </span>
-          <span className="text-[9px] font-bold text-stone-400 bg-stone-50 border border-stone-100 px-1.5 py-0.5 rounded">
+          <span className="text-[9px] font-bold text-gray-400 bg-gray-50 border border-gray-100 px-1.5 py-0.5 rounded">
             {products.length}개
           </span>
         </div>
         <svg
           width={12} height={12}
-          className={`text-stone-400 transition-transform ${expanded ? "rotate-180" : ""}`}
+          className={`text-gray-400 transition-transform ${expanded ? "rotate-180" : ""}`}
           fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -237,12 +237,12 @@ export default function CanonicalFormulaSection({
       {/* 섹션 헤더 */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <span className="text-[12px] font-extrabold text-stone-700">분유 카탈로그</span>
+          <span className="text-[12px] font-extrabold text-gray-700">분유 카탈로그</span>
           <span className="text-[9px] font-bold bg-violet-50 text-violet-500 border border-violet-100 px-1.5 py-0.5 rounded-md">
             복수 출처 검증
           </span>
         </div>
-        <span className="text-[10px] font-bold text-stone-400">{filtered.length}건</span>
+        <span className="text-[10px] font-bold text-gray-400">{filtered.length}건</span>
       </div>
 
       {/* 필터 칩 */}
@@ -251,8 +251,8 @@ export default function CanonicalFormulaSection({
           onClick={() => handleFilter("all", null)}
           className={`text-[10px] font-bold px-2 py-1 rounded-lg whitespace-nowrap shrink-0 transition-colors ${
             filterType === "all"
-              ? "bg-stone-800 text-white"
-              : "bg-white border border-stone-200 text-stone-500"
+              ? "bg-gray-800 text-white"
+              : "bg-white border border-gray-200 text-gray-500"
           }`}
         >
           전체
@@ -266,14 +266,14 @@ export default function CanonicalFormulaSection({
             className={`text-[10px] font-bold px-2 py-1 rounded-lg whitespace-nowrap shrink-0 transition-colors ${
               filterType === "country" && filterValue === c
                 ? "bg-blue-500 text-white"
-                : "bg-white border border-stone-200 text-stone-500"
+                : "bg-white border border-gray-200 text-gray-500"
             }`}
           >
             {COUNTRY_FLAG[c] ?? ""} {c}
           </button>
         ))}
 
-        <span className="text-stone-200 shrink-0">|</span>
+        <span className="text-gray-200 shrink-0">|</span>
 
         {/* 밀크베이스 필터 */}
         {milkBases.map(m => (
@@ -283,7 +283,7 @@ export default function CanonicalFormulaSection({
             className={`text-[10px] font-bold px-2 py-1 rounded-lg whitespace-nowrap shrink-0 transition-colors ${
               filterType === "milk" && filterValue === m
                 ? "bg-green-500 text-white"
-                : "bg-white border border-stone-200 text-stone-500"
+                : "bg-white border border-gray-200 text-gray-500"
             }`}
           >
             {MILK_LABEL[m] ?? m}유
@@ -305,9 +305,9 @@ export default function CanonicalFormulaSection({
 
       {/* 구분선 */}
       <div className="flex items-center gap-2 mb-1">
-        <div className="flex-1 h-px bg-stone-100" />
-        <span className="text-[9px] font-bold text-stone-300 shrink-0">기존 분유·루틴 제품</span>
-        <div className="flex-1 h-px bg-stone-100" />
+        <div className="flex-1 h-px bg-gray-100" />
+        <span className="text-[9px] font-bold text-gray-300 shrink-0">기존 분유·루틴 제품</span>
+        <div className="flex-1 h-px bg-gray-100" />
       </div>
     </div>
   )

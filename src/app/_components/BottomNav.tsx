@@ -23,15 +23,15 @@ export default function BottomNav() {
       {/* Fake Door Toast */}
       {toast && (
         <div className="absolute bottom-[80px] left-4 right-4 z-50 pointer-events-none">
-          <div className="bg-stone-800 text-white text-sm font-bold px-5 py-3.5 rounded-2xl text-center shadow-xl animate-fade-in">
+          <div className="bg-gray-800 text-white text-sm font-bold px-5 py-3.5 rounded-2xl text-center shadow-xl animate-fade-in">
             곧 만나요! 지금은 홈·탐색·기록을 먼저 활용해보세요
           </div>
         </div>
       )}
 
-      {/* GNB — pb-safe: 시스템 제스처 영역(홈 인디케이터 등) 확보 */}
+      {/* GNB — backdrop-blur, minimal */}
       <nav
-        className="flex-shrink-0 bg-white border-t border-stone-100 shadow-[0_-4px_20px_rgb(0,0,0,0.05)] z-40 flex items-stretch"
+        className="flex-shrink-0 bg-white/80 backdrop-blur-md border-t border-gray-100 z-40 flex items-stretch"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)', minHeight: '64px' }}
       >
 
@@ -39,7 +39,7 @@ export default function BottomNav() {
         <Link
           href="/"
           className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors ${
-            pathname === "/" ? "text-orange-500" : "text-stone-400 hover:text-stone-600"
+            pathname === "/" ? "text-orange-600" : "text-gray-400 hover:text-gray-600"
           }`}
         >
           <IconHome active={pathname === "/"} />
@@ -50,7 +50,7 @@ export default function BottomNav() {
         <Link
           href="/search"
           className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors ${
-            pathname === "/search" ? "text-orange-500" : "text-stone-400 hover:text-stone-600"
+            pathname === "/search" ? "text-orange-600" : "text-gray-400 hover:text-gray-600"
           }`}
         >
           <IconSearch active={pathname === "/search"} />
@@ -61,7 +61,7 @@ export default function BottomNav() {
         <Link
           href="/record"
           className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors ${
-            pathname === "/record" ? "text-orange-500" : "text-stone-400 hover:text-stone-600"
+            pathname === "/record" ? "text-orange-600" : "text-gray-400 hover:text-gray-600"
           }`}
         >
           <IconRecord active={pathname === "/record"} />
@@ -71,7 +71,7 @@ export default function BottomNav() {
         {/* 라운지 — 준비중 */}
         <button
           onClick={showFakeDoor}
-          className="flex-1 flex flex-col items-center justify-center gap-0.5 text-stone-300 transition-colors"
+          className="flex-1 flex flex-col items-center justify-center gap-0.5 text-gray-300 transition-colors"
         >
           <IconLounge />
           <span className="text-[10px] font-bold">라운지</span>
@@ -80,7 +80,7 @@ export default function BottomNav() {
         {/* 마이 — 준비중 */}
         <button
           onClick={showFakeDoor}
-          className="flex-1 flex flex-col items-center justify-center gap-0.5 text-stone-300 transition-colors"
+          className="flex-1 flex flex-col items-center justify-center gap-0.5 text-gray-300 transition-colors"
         >
           <IconMy />
           <span className="text-[10px] font-bold">마이</span>

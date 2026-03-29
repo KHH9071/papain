@@ -158,14 +158,14 @@ function NutrientTrendChart({
   const yMax  = Math.max(maxRI, currentIntake) * 1.35
 
   return (
-    <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 mb-4">
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-4">
       {/* 헤더 */}
       <div className="flex justify-between items-center mb-1">
-        <h3 className="font-extrabold text-stone-800 text-sm">
+        <h3 className="font-extrabold text-gray-800 text-sm">
           {name}
-          <span className="text-stone-400 text-xs font-medium ml-1.5">성장 추이</span>
+          <span className="text-gray-400 text-xs font-medium ml-1.5">성장 추이</span>
         </h3>
-        <span className="text-[10px] font-bold text-stone-400 bg-stone-50 px-2 py-1 rounded-md">단위: {unit}</span>
+        <span className="text-[10px] font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded-md">단위: {unit}</span>
       </div>
 
       {/* 범례 */}
@@ -211,8 +211,8 @@ function NutrientTrendChart({
               const ri  = payload.find((p) => p.dataKey === "ri")?.value
               const intake = payload.find((p) => p.dataKey === "intake")?.value
               return (
-                <div className="bg-white border border-stone-200 rounded-xl shadow-lg px-3 py-2 text-xs min-w-[110px]">
-                  <p className="font-extrabold text-stone-600 mb-1">{label}개월</p>
+                <div className="bg-white border border-gray-200 rounded-xl shadow-lg px-3 py-2 text-xs min-w-[110px]">
+                  <p className="font-extrabold text-gray-600 mb-1">{label}개월</p>
                   {ri != null && <p className="font-bold text-emerald-600">목표량: {ri}{unit}</p>}
                   <p className="font-bold text-orange-500">섭취량: {typeof intake === "number" ? parseFloat(intake.toFixed(2)) : "-"}{unit}</p>
                 </div>
@@ -259,7 +259,7 @@ function NutrientTrendChart({
 
       {/* 현재 상태 요약 */}
       <div className="mt-1 flex items-center justify-between px-1">
-        <span className="text-[10px] font-bold text-stone-400">
+        <span className="text-[10px] font-bold text-gray-400">
           현재 섭취: <span className="text-orange-500">{displayCur}{unit}</span>
           {currentRI !== null && (
             <span className="ml-1">/ 목표 <span className="text-emerald-600">{currentRI}{unit}</span></span>
@@ -282,7 +282,7 @@ function NutrientTrendChart({
           <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5">
             <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
           </svg>
-          <p className="text-[11px] text-stone-600 leading-snug">
+          <p className="text-[11px] text-gray-600 leading-snug">
             {nextThreshold}개월 이후 {name} 목표량(<strong className="text-emerald-600">{futureRI}{unit}</strong>)이 높아질 수 있어요. 건기식 조합을 미리 살펴보세요.
           </p>
         </div>
@@ -304,12 +304,12 @@ function DietaryBridgeBar({ row }: { row: RIRow }) {
       <div className="flex flex-col gap-2">
         <div className="flex justify-between items-end px-0.5">
           <div className="flex items-center gap-2">
-            <span className="font-extrabold text-stone-800 text-sm">{name}</span>
+            <span className="font-extrabold text-gray-800 text-sm">{name}</span>
             <span className="bg-rose-100 text-rose-600 text-[10px] font-extrabold px-2 py-0.5 rounded-md">상한 초과</span>
           </div>
           <div className="text-xs font-bold">
             <span className="text-rose-600 text-sm">{displayCur}</span>
-            <span className="text-stone-400 text-[10px] ml-0.5">/ 목표 {ri} · 상한 {ulVal}{displayUnit}</span>
+            <span className="text-gray-400 text-[10px] ml-0.5">/ 목표 {ri} · 상한 {ulVal}{displayUnit}</span>
           </div>
         </div>
         <div className="w-full h-12 bg-rose-500 rounded-xl flex items-center px-4 relative overflow-hidden">
@@ -327,7 +327,7 @@ function DietaryBridgeBar({ row }: { row: RIRow }) {
       {/* 헤더 */}
       <div className="flex justify-between items-end px-0.5">
         <div className="flex items-center gap-2">
-          <span className="font-extrabold text-stone-800 text-sm">{name}</span>
+          <span className="font-extrabold text-gray-800 text-sm">{name}</span>
           {isMet && (
             <span className="bg-emerald-100 text-emerald-600 text-[10px] font-extrabold px-2 py-0.5 rounded-md flex items-center gap-0.5">
               <svg width={9} height={9} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
@@ -336,17 +336,17 @@ function DietaryBridgeBar({ row }: { row: RIRow }) {
           )}
         </div>
         <div className="text-xs font-bold">
-          <span className={`text-sm ${isMet ? "text-emerald-600" : "text-stone-800"}`}>{displayCur}</span>
-          <span className="text-stone-400 text-[10px] ml-0.5">/ 목표 {ri}{displayUnit}</span>
+          <span className={`text-sm ${isMet ? "text-emerald-600" : "text-gray-800"}`}>{displayCur}</span>
+          <span className="text-gray-400 text-[10px] ml-0.5">/ 목표 {ri}{displayUnit}</span>
           {ulVal !== undefined && (
-            <span className="text-stone-300 text-[10px] ml-1">· 상한 {ulVal}</span>
+            <span className="text-gray-300 text-[10px] ml-1">· 상한 {ulVal}</span>
           )}
         </div>
       </div>
 
       {/* 식이 브릿지 바 */}
       <div className="w-full h-12 relative flex items-center">
-        <div className="absolute inset-0 bg-stone-100 rounded-xl overflow-hidden" />
+        <div className="absolute inset-0 bg-gray-100 rounded-xl overflow-hidden" />
 
         {/* 건기식 (실선, 채워진 부분) */}
         {solidPct > 0 && (
@@ -366,26 +366,26 @@ function DietaryBridgeBar({ row }: { row: RIRow }) {
         {/* 식단으로 채워야 할 부분 (점선, 음식 칩) */}
         {!isMet && (
           <div
-            className="absolute right-0 top-0 bottom-0 rounded-r-xl border-2 border-dashed border-stone-300 bg-stone-50/60 flex items-center px-2 gap-1.5 overflow-hidden"
+            className="absolute right-0 top-0 bottom-0 rounded-r-xl border-2 border-dashed border-gray-300 bg-gray-50/60 flex items-center px-2 gap-1.5 overflow-hidden"
             style={{ width: `${100 - solidPct}%` }}
           >
             {100 - solidPct > 30 && (
-              <span className="text-[9px] font-bold text-stone-400 shrink-0 flex items-center gap-0.5">
+              <span className="text-[9px] font-bold text-gray-400 shrink-0 flex items-center gap-0.5">
                 <svg width={9} height={9} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M3 11l19-9-9 19-2-8-8-2z" /></svg>
                 식단
               </span>
             )}
             <div className="flex gap-1 overflow-x-auto scrollbar-hide">
               {foods.map((food, idx) => (
-                <div key={idx} className="flex items-center bg-white border border-stone-200 rounded-lg px-1.5 py-1 shrink-0 shadow-sm">
+                <div key={idx} className="flex items-center bg-white border border-gray-200 rounded-lg px-1.5 py-1 shrink-0 shadow-sm">
                   <span className="text-sm mr-0.5">{food.icon}</span>
-                  <span className="text-[10px] font-extrabold text-stone-700 whitespace-nowrap">
+                  <span className="text-[10px] font-extrabold text-gray-700 whitespace-nowrap">
                     {food.name} <span className="text-orange-500">{food.amount}</span>
                   </span>
                 </div>
               ))}
               {foods.length === 0 && (
-                <span className="text-[10px] text-stone-400 font-medium whitespace-nowrap">일반 식사로 섭취</span>
+                <span className="text-[10px] text-gray-400 font-medium whitespace-nowrap">일반 식사로 섭취</span>
               )}
             </div>
           </div>
@@ -394,7 +394,7 @@ function DietaryBridgeBar({ row }: { row: RIRow }) {
 
       {/* 부족 안내 메시지 */}
       {isDeficient && (
-        <p className="text-[11px] font-medium text-stone-500 px-0.5 leading-snug">
+        <p className="text-[11px] font-medium text-gray-500 px-0.5 leading-snug">
           건기식으로 <strong className="text-orange-500">{parseFloat((ri - current).toFixed(2))}{displayUnit}</strong>만큼 더 살펴볼 수 있어요. 위 식품을 통해서도 채울 수 있어요.
         </p>
       )}
@@ -410,7 +410,7 @@ function PercentileBar({ value, row, label }: { value: number; row: PctRow; labe
   return (
     <div className="flex-1">
       <div className="flex items-end justify-between mb-1">
-        <span className="text-[10px] font-bold text-stone-400">{label}</span>
+        <span className="text-[10px] font-bold text-gray-400">{label}</span>
         <span className="text-base font-extrabold" style={{ color }}>
           {value}{label === "키" ? "cm" : "kg"}
         </span>
@@ -419,15 +419,15 @@ function PercentileBar({ value, row, label }: { value: number; row: PctRow; labe
         <span className="text-xs font-extrabold px-2 py-0.5 rounded-full" style={{ backgroundColor: color + "20", color }}>
           P{pct}
         </span>
-        <span className="text-[10px] font-bold text-stone-500">{pctLabel(pct)}</span>
+        <span className="text-[10px] font-bold text-gray-500">{pctLabel(pct)}</span>
       </div>
-      <div className="relative h-2 bg-stone-100 rounded-full">
+      <div className="relative h-2 bg-gray-100 rounded-full">
         <div className="absolute top-0 h-full rounded-full opacity-20" style={{ left: "15%", width: "70%", backgroundColor: "#10b981" }} />
         <div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border-2 border-white shadow-md" style={{ left: `calc(${pos}% - 6px)`, backgroundColor: color }} />
       </div>
       <div className="flex justify-between mt-1">
-        <span className="text-[9px] text-stone-300 font-bold" style={{ marginLeft: "15%" }}>P5</span>
-        <span className="text-[9px] text-stone-300 font-bold" style={{ marginRight: "16%" }}>P95</span>
+        <span className="text-[9px] text-gray-300 font-bold" style={{ marginLeft: "15%" }}>P5</span>
+        <span className="text-[9px] text-gray-300 font-bold" style={{ marginRight: "16%" }}>P95</span>
       </div>
     </div>
   )
@@ -441,10 +441,10 @@ function ChartTooltip({ active, payload, label, tab }: {
   const child = payload.find((p) => p.name === "내아이")
   const refs  = payload.filter((p) => p.name !== "내아이")
   return (
-    <div className="bg-white border border-stone-200 rounded-xl shadow-lg px-3 py-2.5 text-xs min-w-[110px]">
-      <p className="font-extrabold text-stone-600 mb-1.5">{label}개월</p>
+    <div className="bg-white border border-gray-200 rounded-xl shadow-lg px-3 py-2.5 text-xs min-w-[110px]">
+      <p className="font-extrabold text-gray-600 mb-1.5">{label}개월</p>
       {child && <p className="font-extrabold text-emerald-600 text-sm mb-1">내 아이: {child.value}{unit}</p>}
-      {refs.map((p, i) => <p key={i} className="text-stone-400 font-bold leading-relaxed">{p.name}: {p.value}{unit}</p>)}
+      {refs.map((p, i) => <p key={i} className="text-gray-400 font-bold leading-relaxed">{p.name}: {p.value}{unit}</p>)}
     </div>
   )
 }
@@ -620,7 +620,7 @@ export default function RecordPage() {
 
   // ─────────────────────────────────────────────────────────────────────────
   return (
-    <div className="h-full overflow-y-auto bg-[#FFFBF7]">
+    <div className="h-full overflow-y-auto bg-gray-50">
 
       {/* ══ 스티키 헤더 ══ */}
       <div className="sticky top-0 z-10 bg-white shadow-[0_4px_16px_rgb(0,0,0,0.05)] rounded-b-3xl">
@@ -633,17 +633,17 @@ export default function RecordPage() {
                 <line x1="6" y1="20" x2="6" y2="14" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="18" y1="20" x2="18" y2="10" />
               </svg>
             </div>
-            <h1 className="text-base font-extrabold text-stone-800">기록</h1>
+            <h1 className="text-base font-extrabold text-gray-800">기록</h1>
           </div>
 
           {/* 성별 + 월령 */}
           <div className="flex items-center gap-2">
-            <div className="flex items-center bg-stone-100 rounded-xl p-0.5">
-              <button onClick={() => handleGender("M")} aria-label="남아 선택" aria-pressed={localGender === "M"} className={`px-2.5 py-1 rounded-[10px] text-xs font-extrabold transition-colors ${localGender === "M" ? "bg-blue-500 text-white shadow-sm" : "text-stone-400"}`}>남아</button>
-              <button onClick={() => handleGender("F")} aria-label="여아 선택" aria-pressed={localGender === "F"} className={`px-2.5 py-1 rounded-[10px] text-xs font-extrabold transition-colors ${localGender === "F" ? "bg-rose-400 text-white shadow-sm" : "text-stone-400"}`}>여아</button>
+            <div className="flex items-center bg-gray-100 rounded-xl p-0.5">
+              <button onClick={() => handleGender("M")} aria-label="남아 선택" aria-pressed={localGender === "M"} className={`px-2.5 py-1 rounded-[10px] text-xs font-extrabold transition-colors ${localGender === "M" ? "bg-blue-500 text-white shadow-sm" : "text-gray-400"}`}>남아</button>
+              <button onClick={() => handleGender("F")} aria-label="여아 선택" aria-pressed={localGender === "F"} className={`px-2.5 py-1 rounded-[10px] text-xs font-extrabold transition-colors ${localGender === "F" ? "bg-rose-400 text-white shadow-sm" : "text-gray-400"}`}>여아</button>
             </div>
-            <div className="flex items-center gap-1 bg-[#FFFBF7] border border-stone-200 rounded-xl px-2 py-1">
-              <button onClick={() => { const n = Math.max(MIN_MONTHS, localMonths - 1); setLocalMonths(n); setMonthInput(String(n)) }} aria-label="월령 줄이기" className="w-5 h-5 flex items-center justify-center text-stone-400 font-bold text-base leading-none">-</button>
+            <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-xl px-2 py-1">
+              <button onClick={() => { const n = Math.max(MIN_MONTHS, localMonths - 1); setLocalMonths(n); setMonthInput(String(n)) }} aria-label="월령 줄이기" className="w-5 h-5 flex items-center justify-center text-gray-400 font-bold text-base leading-none">-</button>
               <div className="flex items-center">
                 <input
                   type="number" inputMode="numeric" value={monthInput}
@@ -654,25 +654,25 @@ export default function RecordPage() {
                 />
                 <span className="text-sm font-extrabold text-orange-600">개월</span>
               </div>
-              <button onClick={() => { const n = Math.min(MAX_MONTHS, localMonths + 1); setLocalMonths(n); setMonthInput(String(n)) }} aria-label="월령 늘리기" className="w-5 h-5 flex items-center justify-center text-stone-400 font-bold text-base leading-none">+</button>
+              <button onClick={() => { const n = Math.min(MAX_MONTHS, localMonths + 1); setLocalMonths(n); setMonthInput(String(n)) }} aria-label="월령 늘리기" className="w-5 h-5 flex items-center justify-center text-gray-400 font-bold text-base leading-none">+</button>
             </div>
           </div>
         </div>
 
         {/* 페이지 탭 */}
         <div className="px-5 pb-3">
-          <div className="flex bg-stone-100 rounded-2xl p-1">
+          <div className="flex bg-gray-100 rounded-2xl p-1">
             <button
               onClick={() => setPageTab("growth")}
               aria-pressed={pageTab === "growth"}
-              className={`flex-1 py-2 rounded-xl text-sm font-extrabold transition-all ${pageTab === "growth" ? "bg-white text-stone-800 shadow-sm" : "text-stone-400"}`}
+              className={`flex-1 py-2 rounded-xl text-sm font-extrabold transition-all ${pageTab === "growth" ? "bg-white text-gray-800 shadow-sm" : "text-gray-400"}`}
             >
               성장 기록
             </button>
             <button
               onClick={() => setPageTab("nutrition")}
               aria-pressed={pageTab === "nutrition"}
-              className={`flex-1 py-2 rounded-xl text-sm font-extrabold transition-all ${pageTab === "nutrition" ? "bg-white text-stone-800 shadow-sm" : "text-stone-400"}`}
+              className={`flex-1 py-2 rounded-xl text-sm font-extrabold transition-all ${pageTab === "nutrition" ? "bg-white text-gray-800 shadow-sm" : "text-gray-400"}`}
             >
               영양 리포트
             </button>
@@ -687,30 +687,30 @@ export default function RecordPage() {
         {pageTab === "growth" && (
           <>
             {latestRecord && latestHRow && latestWRow && (
-              <div className="bg-white rounded-2xl border border-stone-100 shadow-sm px-4 pt-4 pb-5">
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-4 pt-4 pb-5">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xs font-extrabold text-stone-600">최근 측정 결과</h2>
-                  <span className="text-[10px] font-bold text-stone-400 bg-stone-50 px-2 py-0.5 rounded-md">
+                  <h2 className="text-xs font-extrabold text-gray-600">최근 측정 결과</h2>
+                  <span className="text-[10px] font-bold text-gray-400 bg-gray-50 px-2 py-0.5 rounded-md">
                     {latestRecord.monthsOld}개월 · {latestRecord.date}
-                    {latestIsApprox && <span className="text-stone-300 ml-1">· 참고 기준</span>}
+                    {latestIsApprox && <span className="text-gray-300 ml-1">· 참고 기준</span>}
                   </span>
                 </div>
                 <div className="flex gap-5">
                   <PercentileBar value={latestRecord.height} row={latestHRow} label="키" />
-                  <div className="w-px bg-stone-100" />
+                  <div className="w-px bg-gray-100" />
                   <PercentileBar value={latestRecord.weight} row={latestWRow} label="체중" />
                 </div>
                 {latestIsApprox && latestHMatch && (
-                  <p className="text-[10px] text-stone-400 text-center mt-2">
+                  <p className="text-[10px] text-gray-400 text-center mt-2">
                     * {latestHMatch.nearestMonth}개월 기준 참고 곡선이에요
                   </p>
                 )}
               </div>
             )}
 
-            <div ref={formRef} className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 flex flex-col gap-3">
+            <div ref={formRef} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-col gap-3">
               <div className="flex items-center justify-between">
-                <h2 className="text-sm font-extrabold text-stone-700">
+                <h2 className="text-sm font-extrabold text-gray-700">
                   {existingRecord ? `${localMonths}개월 기록 수정` : `${localMonths}개월 기록 추가`}
                 </h2>
                 {existingRecord && (
@@ -721,21 +721,21 @@ export default function RecordPage() {
               </div>
               {/* 기록 대상 월령과 현재 기준 월령이 다를 때 안내 */}
               {localMonths !== storeMonthsOld && (
-                <p className="text-[10px] font-bold text-stone-400 bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 leading-snug">
+                <p className="text-[10px] font-bold text-gray-400 bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 leading-snug">
                   현재 기준 <span className="text-orange-500">{storeMonthsOld}개월</span>과 다른 월령으로 기록해요 — Home · 탐색 기준은 바뀌지 않아요
                 </p>
               )}
               <div className="flex gap-3">
                 <div className="flex-1 flex flex-col gap-1">
-                  <label className="text-[10px] font-bold text-stone-500">키 (cm)</label>
+                  <label className="text-[10px] font-bold text-gray-500">키 (cm)</label>
                   <input type="number" inputMode="decimal" value={heightInput} onChange={(e) => setHeightInput(e.target.value)} placeholder="예: 75.0"
-                    className={`w-full px-3 py-2.5 rounded-xl border text-sm font-bold text-stone-800 placeholder:text-stone-300 focus:outline-none transition-colors ${errors.height ? "border-rose-400 bg-rose-50" : "border-stone-200 focus:border-orange-400"}`} />
+                    className={`w-full px-3 py-2.5 rounded-xl border text-sm font-bold text-gray-800 placeholder:text-gray-300 focus:outline-none transition-colors ${errors.height ? "border-rose-400 bg-rose-50" : "border-gray-200 focus:border-orange-400"}`} />
                   {errors.height && <p className="text-[10px] text-rose-500 font-bold">{errors.height}</p>}
                 </div>
                 <div className="flex-1 flex flex-col gap-1">
-                  <label className="text-[10px] font-bold text-stone-500">체중 (kg)</label>
+                  <label className="text-[10px] font-bold text-gray-500">체중 (kg)</label>
                   <input type="number" inputMode="decimal" value={weightInput} onChange={(e) => setWeightInput(e.target.value)} placeholder="예: 9.5"
-                    className={`w-full px-3 py-2.5 rounded-xl border text-sm font-bold text-stone-800 placeholder:text-stone-300 focus:outline-none transition-colors ${errors.weight ? "border-rose-400 bg-rose-50" : "border-stone-200 focus:border-orange-400"}`} />
+                    className={`w-full px-3 py-2.5 rounded-xl border text-sm font-bold text-gray-800 placeholder:text-gray-300 focus:outline-none transition-colors ${errors.weight ? "border-rose-400 bg-rose-50" : "border-gray-200 focus:border-orange-400"}`} />
                   {errors.weight && <p className="text-[10px] text-rose-500 font-bold">{errors.weight}</p>}
                 </div>
               </div>
@@ -744,13 +744,13 @@ export default function RecordPage() {
               </button>
             </div>
 
-            <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 flex flex-col gap-3">
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-col gap-3">
               <div className="flex gap-2">
-                <button onClick={() => setChartTab("height")} aria-pressed={chartTab === "height"} className={`flex-1 py-2 rounded-xl text-xs font-extrabold transition-colors ${chartTab === "height" ? "bg-emerald-500 text-white" : "bg-stone-100 text-stone-500"}`}>키 성장곡선</button>
-                <button onClick={() => setChartTab("weight")} aria-pressed={chartTab === "weight"} className={`flex-1 py-2 rounded-xl text-xs font-extrabold transition-colors ${chartTab === "weight" ? "bg-emerald-500 text-white" : "bg-stone-100 text-stone-500"}`}>체중 성장곡선</button>
+                <button onClick={() => setChartTab("height")} aria-pressed={chartTab === "height"} className={`flex-1 py-2 rounded-xl text-xs font-extrabold transition-colors ${chartTab === "height" ? "bg-emerald-500 text-white" : "bg-gray-100 text-gray-500"}`}>키 성장곡선</button>
+                <button onClick={() => setChartTab("weight")} aria-pressed={chartTab === "weight"} className={`flex-1 py-2 rounded-xl text-xs font-extrabold transition-colors ${chartTab === "weight" ? "bg-emerald-500 text-white" : "bg-gray-100 text-gray-500"}`}>체중 성장곡선</button>
               </div>
               <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1.5"><svg width={22} height={8}><line x1="0" y1="4" x2="22" y2="4" stroke="#d1d5db" strokeWidth="2" strokeDasharray="4 3" /></svg><span className="text-[10px] font-bold text-stone-400">P5 · P50 · P95</span></div>
+                <div className="flex items-center gap-1.5"><svg width={22} height={8}><line x1="0" y1="4" x2="22" y2="4" stroke="#d1d5db" strokeWidth="2" strokeDasharray="4 3" /></svg><span className="text-[10px] font-bold text-gray-400">P5 · P50 · P95</span></div>
                 <div className="flex items-center gap-1.5"><svg width={22} height={8}><line x1="0" y1="4" x2="22" y2="4" stroke="#10b981" strokeWidth="2.5" /></svg><span className="text-[10px] font-bold text-emerald-600">우리 아이</span></div>
               </div>
               <div className="overflow-x-auto -mx-4 px-2">
@@ -776,8 +776,8 @@ export default function RecordPage() {
             </div>
 
             {growthRecords.length > 0 ? (
-              <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 flex flex-col gap-3">
-                <h2 className="text-sm font-extrabold text-stone-700">측정 기록</h2>
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-col gap-3">
+                <h2 className="text-sm font-extrabold text-gray-700">측정 기록</h2>
                 <div className="flex flex-col gap-2">
                   {[...growthRecords].reverse().map((r) => {
                     const hMatch  = findNearestGrowthRow(heightData, r.monthsOld)
@@ -787,17 +787,17 @@ export default function RecordPage() {
                     const isApprox = hMatch !== null && !hMatch.exact
                     const isEditing = localMonths === r.monthsOld && heightInput !== ""
                     return (
-                      <div key={r.monthsOld} className={`flex items-center justify-between rounded-xl px-3 py-2.5 transition-colors ${isEditing ? "bg-amber-50 border border-amber-200" : "bg-stone-50"}`}>
+                      <div key={r.monthsOld} className={`flex items-center justify-between rounded-xl px-3 py-2.5 transition-colors ${isEditing ? "bg-amber-50 border border-amber-200" : "bg-gray-50"}`}>
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-700 text-xs font-extrabold">{r.monthsOld}m</div>
                           <div>
-                            <p className="text-[10px] font-bold text-stone-400">{r.date}</p>
-                            <p className="text-sm font-extrabold text-stone-800">{r.height}cm · {r.weight}kg</p>
+                            <p className="text-[10px] font-bold text-gray-400">{r.date}</p>
+                            <p className="text-sm font-extrabold text-gray-800">{r.height}cm · {r.weight}kg</p>
                             {hPct !== null && wPct !== null && (
-                              <p className="text-[10px] font-bold text-stone-400 mt-0.5">
+                              <p className="text-[10px] font-bold text-gray-400 mt-0.5">
                                 키 <span style={{ color: pctColor(hPct) }}>P{hPct}</span>
                                 {" · "}체중 <span style={{ color: pctColor(wPct) }}>P{wPct}</span>
-                                {isApprox && <span className="text-stone-300 ml-1">(참고)</span>}
+                                {isApprox && <span className="text-gray-300 ml-1">(참고)</span>}
                               </p>
                             )}
                           </div>
@@ -806,14 +806,14 @@ export default function RecordPage() {
                           <button
                             onClick={() => startEdit(r)}
                             aria-label={`${r.monthsOld}개월 기록 수정`}
-                            className="px-2 py-1 text-[10px] font-bold text-stone-400 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-colors"
+                            className="px-2 py-1 text-[10px] font-bold text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-colors"
                           >
                             수정
                           </button>
                           <button
                             onClick={() => removeGrowthRecord(r.monthsOld)}
                             aria-label={`${r.monthsOld}개월 기록 삭제`}
-                            className="p-1.5 rounded-full text-stone-300 hover:text-rose-400 hover:bg-rose-50 transition-colors"
+                            className="p-1.5 rounded-full text-gray-300 hover:text-rose-400 hover:bg-rose-50 transition-colors"
                           >
                             <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                           </button>
@@ -824,7 +824,7 @@ export default function RecordPage() {
                 </div>
               </div>
             ) : (
-              <div className="text-center py-8 text-stone-400">
+              <div className="text-center py-8 text-gray-400">
                 <svg className="mx-auto mb-2 opacity-40" width={40} height={40} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
                   <line x1="6" y1="20" x2="6" y2="14" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="18" y1="20" x2="18" y2="10" />
                 </svg>
@@ -850,11 +850,11 @@ export default function RecordPage() {
         {pageTab === "nutrition" && (
           <>
             {/* ① 뷰 전환 세그먼티드 컨트롤 */}
-            <div className="flex bg-stone-100 rounded-2xl p-1">
+            <div className="flex bg-gray-100 rounded-2xl p-1">
               <button
                 onClick={() => setNutritionView("daily")}
                 aria-pressed={nutritionView === "daily"}
-                className={`flex-1 py-2 rounded-xl text-sm font-extrabold transition-all flex justify-center items-center gap-1.5 ${nutritionView === "daily" ? "bg-white text-stone-800 shadow-sm" : "text-stone-400"}`}
+                className={`flex-1 py-2 rounded-xl text-sm font-extrabold transition-all flex justify-center items-center gap-1.5 ${nutritionView === "daily" ? "bg-white text-gray-800 shadow-sm" : "text-gray-400"}`}
               >
                 <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
@@ -864,7 +864,7 @@ export default function RecordPage() {
               <button
                 onClick={() => setNutritionView("trend")}
                 aria-pressed={nutritionView === "trend"}
-                className={`flex-1 py-2 rounded-xl text-sm font-extrabold transition-all flex justify-center items-center gap-1.5 ${nutritionView === "trend" ? "bg-white text-stone-800 shadow-sm" : "text-stone-400"}`}
+                className={`flex-1 py-2 rounded-xl text-sm font-extrabold transition-all flex justify-center items-center gap-1.5 ${nutritionView === "trend" ? "bg-white text-gray-800 shadow-sm" : "text-gray-400"}`}
               >
                 <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" /><polyline points="17 6 23 6 23 12" />
@@ -877,10 +877,10 @@ export default function RecordPage() {
             {nutritionView === "daily" && (
               <>
                 {/* ② 주간 캘린더 */}
-                <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
                   <div className="flex justify-between items-center mb-3 px-1">
-                    <span className="text-xs font-extrabold text-stone-600">이번 주 영양 채움</span>
-                    <span className="text-[10px] font-bold text-stone-400 bg-stone-50 px-2 py-1 rounded-lg">
+                    <span className="text-xs font-extrabold text-gray-600">이번 주 영양 채움</span>
+                    <span className="text-[10px] font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded-lg">
                       {AGE_GROUP_LABEL[ageGroup]} · 건기식 {selectedProducts.length}개
                     </span>
                   </div>
@@ -892,11 +892,11 @@ export default function RecordPage() {
                           key={day.id}
                           onClick={() => setSelectedDay(day.id)}
                           className={`flex flex-col items-center p-2 rounded-2xl w-[13%] transition-all ${
-                            isSelected ? "bg-orange-500 text-white shadow-md scale-105" : "bg-transparent text-stone-500"
+                            isSelected ? "bg-orange-500 text-white shadow-md scale-105" : "bg-transparent text-gray-500"
                           }`}
                         >
-                          <span className={`text-[10px] font-bold mb-1 ${isSelected ? "text-orange-100" : "text-stone-400"}`}>{day.label}</span>
-                          <span className={`text-sm font-extrabold ${isSelected ? "text-white" : "text-stone-800"}`}>{day.date}</span>
+                          <span className={`text-[10px] font-bold mb-1 ${isSelected ? "text-orange-100" : "text-gray-400"}`}>{day.label}</span>
+                          <span className={`text-sm font-extrabold ${isSelected ? "text-white" : "text-gray-800"}`}>{day.date}</span>
                           <div className={`w-1 h-1 rounded-full mt-1.5 ${isSelected ? "bg-white" : day.hasData ? "bg-orange-400" : "bg-transparent"}`} />
                         </button>
                       )
@@ -929,7 +929,7 @@ export default function RecordPage() {
                 {/* ④ 식이 브릿지 시각화 */}
                 {isViewingToday ? (
                   selectedProducts.length === 0 ? (
-                    <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-8 text-center text-stone-400">
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center text-gray-400">
                       <svg className="mx-auto mb-3 opacity-40" width={36} height={36} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
                         <circle cx="12" cy="12" r="9" /><path d="M8 12l3 3 5-5" />
                       </svg>
@@ -937,15 +937,15 @@ export default function RecordPage() {
                       <p className="text-xs mt-1 font-medium">홈 탭에서 건기식을 담아주세요.</p>
                     </div>
                   ) : (
-                    <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 flex flex-col gap-6">
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-col gap-6">
                       <div className="flex items-center gap-2">
                         <div className="flex items-center gap-1.5">
                           <div className="w-3 h-3 rounded-sm bg-orange-400" />
-                          <span className="text-[10px] font-bold text-stone-500">건기식 채움</span>
+                          <span className="text-[10px] font-bold text-gray-500">건기식 채움</span>
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <div className="w-3 h-3 rounded-sm border-2 border-dashed border-stone-300 bg-stone-50" />
-                          <span className="text-[10px] font-bold text-stone-500">식단으로 채울 수 있어요</span>
+                          <div className="w-3 h-3 rounded-sm border-2 border-dashed border-gray-300 bg-gray-50" />
+                          <span className="text-[10px] font-bold text-gray-500">식단으로 채울 수 있어요</span>
                         </div>
                       </div>
                       {riRows.map((row) => (
@@ -954,7 +954,7 @@ export default function RecordPage() {
                     </div>
                   )
                 ) : (
-                  <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-8 text-center text-stone-400">
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center text-gray-400">
                     <svg className="mx-auto mb-3 opacity-40" width={36} height={36} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
                       <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
                     </svg>

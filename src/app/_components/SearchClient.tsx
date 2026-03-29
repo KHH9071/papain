@@ -72,37 +72,37 @@ function VolumeModal({
         className="w-full max-w-sm bg-white rounded-t-3xl px-6 pt-6 pb-10 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="w-10 h-1 bg-stone-200 rounded-full mx-auto mb-5" />
+        <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
         <div className="flex items-center gap-3 mb-5">
           <span className="text-3xl">
             {CATEGORY_ICON[product.category as "formula" | "milk" | "cheese"] ?? "🍼"}
           </span>
           <div>
-            <p className="text-[11px] font-bold text-stone-400">{product.manufacturer}</p>
-            <p className="font-extrabold text-stone-800">{product.product_name}</p>
+            <p className="text-[11px] font-bold text-gray-400">{product.manufacturer}</p>
+            <p className="font-extrabold text-gray-800">{product.product_name}</p>
           </div>
         </div>
-        <p className="text-sm font-bold text-stone-600 mb-3">
+        <p className="text-sm font-bold text-gray-600 mb-3">
           하루 섭취량을 입력해 주세요 ({unitLabel})
         </p>
         <div className="flex items-center gap-3 mb-5">
           <button
             onClick={() => setValue((v) => Math.max(minVal, v - step))}
-            className="w-11 h-11 rounded-xl bg-stone-100 text-stone-700 font-bold text-xl flex items-center justify-center active:bg-stone-200"
+            className="w-11 h-11 rounded-xl bg-gray-100 text-gray-700 font-bold text-xl flex items-center justify-center active:bg-gray-200"
           >−</button>
           <div className="flex-1 text-center">
-            <span className="text-2xl font-extrabold text-stone-800">{value}</span>
-            <span className="text-sm font-bold text-stone-500 ml-1">{unitLabel}</span>
+            <span className="text-2xl font-extrabold text-gray-800">{value}</span>
+            <span className="text-sm font-bold text-gray-500 ml-1">{unitLabel}</span>
           </div>
           <button
             onClick={() => setValue((v) => v + step)}
-            className="w-11 h-11 rounded-xl bg-stone-100 text-stone-700 font-bold text-xl flex items-center justify-center active:bg-stone-200"
+            className="w-11 h-11 rounded-xl bg-gray-100 text-gray-700 font-bold text-xl flex items-center justify-center active:bg-gray-200"
           >+</button>
         </div>
         <div className="flex gap-2">
           <button
             onClick={onCancel}
-            className="flex-1 py-3 rounded-2xl border border-stone-200 text-stone-500 font-extrabold text-sm"
+            className="flex-1 py-3 rounded-2xl border border-gray-200 text-gray-500 font-extrabold text-sm"
           >취소</button>
           <button
             onClick={() => onConfirm(value)}
@@ -161,7 +161,7 @@ function MobileProductCard({
           ? isRoutine
             ? "border-blue-400 shadow-md shadow-blue-400/10"
             : "border-orange-500 shadow-md shadow-orange-500/10"
-          : "border-stone-100"
+          : "border-gray-100"
       }`}
     >
       <div className="p-4 flex gap-3 items-start relative" onClick={handleMainTap}>
@@ -172,7 +172,7 @@ function MobileProductCard({
               ? isRoutine
                 ? "bg-blue-500 border-blue-500 text-white"
                 : "bg-orange-500 border-orange-500 text-white"
-              : "border-stone-300 text-transparent"
+              : "border-gray-300 text-transparent"
           }`}
         >
           <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}>
@@ -189,13 +189,13 @@ function MobileProductCard({
             {isRoutine && (
               <span className="text-base">{CATEGORY_ICON[product.category as "formula" | "milk" | "cheese"]}</span>
             )}
-            <p className="text-[10px] font-bold text-stone-400">{product.manufacturer ?? ""}</p>
+            <p className="text-[10px] font-bold text-gray-400">{product.manufacturer ?? ""}</p>
             {displayLabel && (
               <span className="text-[9px] font-bold text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded-md">{displayLabel}</span>
             )}
           </div>
           <h3 className={`font-extrabold text-[15px] leading-tight ${
-            selected ? (isRoutine ? "text-blue-600" : "text-orange-600") : "text-stone-800"
+            selected ? (isRoutine ? "text-blue-600" : "text-orange-600") : "text-gray-800"
           }`}>
             {product.product_name}
           </h3>
@@ -211,7 +211,7 @@ function MobileProductCard({
                       ? isRoutine
                         ? "bg-blue-50 text-blue-600"
                         : "bg-orange-50 text-orange-600"
-                      : "bg-stone-50 text-stone-500 border border-stone-100"
+                      : "bg-gray-50 text-gray-500 border border-gray-100"
                   }`}
                 >
                   {n.name}
@@ -241,14 +241,14 @@ function MobileProductCard({
           {selected && isRoutine && product.daily_serving_count && (
             <p className="text-[10px] font-bold text-blue-500 mt-1.5">
               하루 {product.daily_serving_count}{product.base_unit === "ml" ? "ml" : "장"}
-              <span className="text-stone-400 ml-1">· 탭해서 수량 변경</span>
+              <span className="text-gray-400 ml-1">· 탭해서 수량 변경</span>
             </p>
           )}
         </div>
 
         <button
           onClick={(e) => { e.stopPropagation(); onToggleExpand() }}
-          className="absolute right-4 top-4 p-1.5 rounded-full hover:bg-stone-50 text-stone-400"
+          className="absolute right-4 top-4 p-1.5 rounded-full hover:bg-gray-50 text-gray-400"
         >
           <svg
             width={18} height={18}
@@ -263,11 +263,11 @@ function MobileProductCard({
       {/* 아코디언 상세 */}
       {expanded && (
         <div
-          className="px-4 pb-4 pt-2 bg-stone-50/50 border-t border-stone-100"
+          className="px-4 pb-4 pt-2 bg-gray-50/50 border-t border-gray-100"
           onClick={(e) => e.stopPropagation()}
         >
           {product.functionality && hasNutrients && (
-            <p className="text-xs text-stone-500 font-medium leading-relaxed mb-3">
+            <p className="text-xs text-gray-500 font-medium leading-relaxed mb-3">
               {product.functionality}
             </p>
           )}
@@ -279,60 +279,60 @@ function MobileProductCard({
 
           {/* 영양성분표 — 영양소가 있는 제품 */}
           {hasNutrients ? (
-            <div className="bg-white rounded-xl border border-stone-200 p-3 flex flex-col gap-2 mb-3">
+            <div className="bg-white rounded-xl border border-gray-200 p-3 flex flex-col gap-2 mb-3">
               {isRoutine && (
-                <div className="flex justify-between items-center pb-2 border-b border-stone-100">
-                  <span className="text-[11px] font-bold text-stone-400">기준 단위</span>
-                  <span className="text-xs font-extrabold text-stone-700">
+                <div className="flex justify-between items-center pb-2 border-b border-gray-100">
+                  <span className="text-[11px] font-bold text-gray-400">기준 단위</span>
+                  <span className="text-xs font-extrabold text-gray-700">
                     per 100{product.base_unit === "ml" ? "ml" : "장"}
                   </span>
                 </div>
               )}
               {product.metadata?.derivedAgeRangeMonths && (
-                <div className="flex justify-between items-center pb-2 border-b border-stone-100">
-                  <span className="text-[11px] font-bold text-stone-400">단계 기준 예상 월령</span>
-                  <span className="text-xs font-bold text-stone-500">
+                <div className="flex justify-between items-center pb-2 border-b border-gray-100">
+                  <span className="text-[11px] font-bold text-gray-400">단계 기준 예상 월령</span>
+                  <span className="text-xs font-bold text-gray-500">
                     {product.metadata.derivedAgeRangeMonths[0]}~{product.metadata.derivedAgeRangeMonths[1]}개월
                   </span>
                 </div>
               )}
               {product.nutrients.map((n, i) => (
                 <div key={i} className="flex justify-between items-center">
-                  <span className="text-[11px] font-bold text-stone-500">{n.name}</span>
-                  <span className="text-xs font-bold text-stone-800">{n.amount}{n.unit}</span>
+                  <span className="text-[11px] font-bold text-gray-500">{n.name}</span>
+                  <span className="text-xs font-bold text-gray-800">{n.amount}{n.unit}</span>
                 </div>
               ))}
             </div>
           ) : (
             /* 영양소 미제공 제품 — 제품 정보 표시 */
-            <div className="bg-white rounded-xl border border-stone-200 p-3 flex flex-col gap-2 mb-3">
+            <div className="bg-white rounded-xl border border-gray-200 p-3 flex flex-col gap-2 mb-3">
               {product.metadata?.derivedAgeRangeMonths && (
-                <div className="flex justify-between items-center pb-2 border-b border-stone-100">
-                  <span className="text-[11px] font-bold text-stone-400">예상 월령</span>
-                  <span className="text-xs font-bold text-stone-500">
+                <div className="flex justify-between items-center pb-2 border-b border-gray-100">
+                  <span className="text-[11px] font-bold text-gray-400">예상 월령</span>
+                  <span className="text-xs font-bold text-gray-500">
                     {product.metadata.derivedAgeRangeMonths[0]}~{product.metadata.derivedAgeRangeMonths[1]}개월
                   </span>
                 </div>
               )}
               {product.metadata?.baseAnimalType && (
                 <div className="flex justify-between items-center">
-                  <span className="text-[11px] font-bold text-stone-400">원유 기반</span>
-                  <span className="text-xs font-bold text-stone-800">
+                  <span className="text-[11px] font-bold text-gray-400">원유 기반</span>
+                  <span className="text-xs font-bold text-gray-800">
                     {product.metadata.baseAnimalType === "cow" ? "소" : "산양"}유
                   </span>
                 </div>
               )}
               {product.metadata?.isOrganic && (
                 <div className="flex justify-between items-center">
-                  <span className="text-[11px] font-bold text-stone-400">인증</span>
+                  <span className="text-[11px] font-bold text-gray-400">인증</span>
                   <span className="text-xs font-bold text-green-600">유기농</span>
                 </div>
               )}
-              <div className="flex items-center gap-1.5 pt-2 border-t border-stone-100">
+              <div className="flex items-center gap-1.5 pt-2 border-t border-gray-100">
                 <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="#a8a29e" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
                   <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
                 </svg>
-                <p className="text-[10px] font-bold text-stone-400">
+                <p className="text-[10px] font-bold text-gray-400">
                   영양성분 정보는 추후 업데이트 예정이에요
                 </p>
               </div>
@@ -343,12 +343,12 @@ function MobileProductCard({
           {canCompare ? (
             <button
               onClick={() => onSetAsReference(product)}
-              className="w-full flex items-center justify-between bg-stone-100 hover:bg-orange-50 hover:border-orange-200 border border-transparent rounded-xl px-3 py-2.5 mb-3 transition-colors group"
+              className="w-full flex items-center justify-between bg-gray-100 hover:bg-orange-50 hover:border-orange-200 border border-transparent rounded-xl px-3 py-2.5 mb-3 transition-colors group"
             >
-              <span className="text-[11px] font-extrabold text-stone-500 group-hover:text-orange-600">
+              <span className="text-[11px] font-extrabold text-gray-500 group-hover:text-orange-600">
                 이 제품 기준으로 비슷한 제품 살펴보기
               </span>
-              <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className="text-stone-400 group-hover:text-orange-500">
+              <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 group-hover:text-orange-500">
                 <path d="M9 18l6-6-6-6" />
               </svg>
             </button>
@@ -365,11 +365,11 @@ function MobileProductCard({
               </svg>
             </button>
           ) : capability.unavailableReason ? (
-            <div className="flex items-start gap-1.5 bg-stone-50 border border-stone-100 rounded-xl px-3 py-2 mb-3">
+            <div className="flex items-start gap-1.5 bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 mb-3">
               <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="#a8a29e" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-px">
                 <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
-              <p className="text-[10px] font-bold text-stone-400 leading-snug">
+              <p className="text-[10px] font-bold text-gray-400 leading-snug">
                 {capability.unavailableReason}
               </p>
             </div>
@@ -378,7 +378,7 @@ function MobileProductCard({
           {/* 유사 성분 제품 미리보기 */}
           {similarList.length > 0 && (
             <div>
-              <p className="text-[10px] font-extrabold text-stone-400 mb-2">
+              <p className="text-[10px] font-extrabold text-gray-400 mb-2">
                 성분 기준 비슷한 제품 미리보기
               </p>
               <div className="flex flex-col gap-1.5">
@@ -386,17 +386,17 @@ function MobileProductCard({
                   <button
                     key={sim.id}
                     onClick={() => onSetAsReference(sim)}
-                    className="flex items-center gap-2 bg-white rounded-xl border border-stone-100 hover:border-orange-200 hover:bg-orange-50/50 px-3 py-2 transition-colors text-left w-full group"
+                    className="flex items-center gap-2 bg-white rounded-xl border border-gray-100 hover:border-orange-200 hover:bg-orange-50/50 px-3 py-2 transition-colors text-left w-full group"
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="text-[10px] font-bold text-stone-400 truncate">{sim.manufacturer}</p>
-                      <p className="text-xs font-extrabold text-stone-700 group-hover:text-orange-700 truncate">{sim.product_name}</p>
+                      <p className="text-[10px] font-bold text-gray-400 truncate">{sim.manufacturer}</p>
+                      <p className="text-xs font-extrabold text-gray-700 group-hover:text-orange-700 truncate">{sim.product_name}</p>
                       <p className="text-[9px] font-bold text-emerald-500 mt-0.5">성분 {overlap}개 일치</p>
                     </div>
                     <div className="flex flex-col items-end gap-1 shrink-0">
                       <div className="flex flex-wrap gap-0.5 justify-end max-w-[90px]">
                         {sim.nutrients.slice(0, 3).map((n, i) => (
-                          <span key={i} className="text-[9px] font-bold text-stone-400 bg-stone-50 px-1 py-0.5 rounded">
+                          <span key={i} className="text-[9px] font-bold text-gray-400 bg-gray-50 px-1 py-0.5 rounded">
                             {n.name}
                           </span>
                         ))}
@@ -439,11 +439,11 @@ function SearchContextBanner({
       : config.focus.slice(0, 4)
 
   return (
-    <div className="flex items-center gap-2 px-5 py-2.5 bg-white border-b border-stone-100 overflow-x-auto scrollbar-hide">
-      <span className="text-[10px] font-extrabold text-stone-500 shrink-0 whitespace-nowrap">
+    <div className="flex items-center gap-2 px-5 py-2.5 bg-white border-b border-gray-100 overflow-x-auto scrollbar-hide">
+      <span className="text-[10px] font-extrabold text-gray-500 shrink-0 whitespace-nowrap">
         {monthsOld}개월 · {config.period}
       </span>
-      <span className="text-stone-300 shrink-0 text-[10px]">|</span>
+      <span className="text-gray-300 shrink-0 text-[10px]">|</span>
       {focusChips.map((name) => (
         <button
           key={name}
@@ -492,6 +492,7 @@ export default function SearchClient({
   const [referenceProduct, setReferenceProduct] = useState<Product | null>(null)
   const [stageFilter, setStageFilter]           = useState<number | null>(null)
   const [originFilter, setOriginFilter]         = useState<"all" | "domestic" | "overseas">("all")
+  const [milkTargetFilter, setMilkTargetFilter] = useState<"all" | "toddler" | "general">("all")
 
   const colorMap = new Map(
     selectedProducts
@@ -618,8 +619,16 @@ export default function SearchClient({
       })
     }
 
+    // 우유 대상 필터: milk 제품만 적용
+    if (milkTargetFilter !== "all") {
+      combined = combined.filter((p) => {
+        if (p.category !== "milk") return true
+        return p.metadata?.milkTarget === milkTargetFilter
+      })
+    }
+
     return combined
-  }, [referenceProduct, dbProducts, debouncedQuery, categoryFilter, activeNutrient, stageFilter, originFilter, allProductsPool, allRoutineProducts])
+  }, [referenceProduct, dbProducts, debouncedQuery, categoryFilter, activeNutrient, stageFilter, originFilter, milkTargetFilter, allProductsPool, allRoutineProducts])
 
   // ── formula 단계별 제품 수 ────────────────────────────────────────────────
   const stageProductCounts = useMemo(() => {
@@ -628,6 +637,17 @@ export default function SearchClient({
       if (p.category === "formula" && p.metadata?.formulaStage) {
         const s = p.metadata.formulaStage
         counts[s] = (counts[s] ?? 0) + 1
+      }
+    }
+    return counts
+  }, [allProductsPool])
+
+  // ── milk 대상별 제품 수 ──────────────────────────────────────────────────
+  const milkTargetCounts = useMemo(() => {
+    const counts = { toddler: 0, general: 0 }
+    for (const p of allProductsPool) {
+      if (p.category === "milk" && p.metadata?.milkTarget) {
+        counts[p.metadata.milkTarget]++
       }
     }
     return counts
@@ -693,22 +713,22 @@ export default function SearchClient({
   const cheeseSelectedCount  = selectedProducts.filter(p => p.category === "cheese").length
 
   const CATEGORY_TABS: { key: CategoryFilter; label: string; activeClass: string }[] = [
-    { key: "all",        label: "전체",     activeClass: "bg-stone-800 text-white" },
-    { key: "supplement", label: "💊 건기식", activeClass: "bg-stone-800 text-white" },
+    { key: "all",        label: "전체",     activeClass: "bg-gray-800 text-white" },
+    { key: "supplement", label: "💊 건기식", activeClass: "bg-gray-800 text-white" },
     { key: "formula",    label: `🍼 분유${formulaSelectedCount > 0 ? ` (${formulaSelectedCount})` : ""}`,  activeClass: "bg-blue-500 text-white" },
     { key: "milk",       label: `🥛 우유${milkSelectedCount > 0 ? ` (${milkSelectedCount})` : ""}`,        activeClass: "bg-blue-500 text-white" },
     { key: "cheese",     label: `🧀 치즈${cheeseSelectedCount > 0 ? ` (${cheeseSelectedCount})` : ""}`,    activeClass: "bg-blue-500 text-white" },
   ]
 
   return (
-    <div className="h-full flex flex-col bg-[#FFFBF7]">
+    <div className="h-full flex flex-col bg-gray-50">
 
       {/* ── 스티키 헤더 ── */}
-      <div className="flex-shrink-0 bg-[#FFFBF7]/95 backdrop-blur-sm px-5 pt-4 pb-3 border-b border-stone-100/50">
+      <div className="flex-shrink-0 bg-gray-50/95 backdrop-blur-sm px-5 pt-4 pb-3 border-b border-gray-100/50">
 
         {/* 검색 입력 */}
         <div className="relative group mb-3">
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-stone-400 group-focus-within:text-orange-500 transition-colors">
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 group-focus-within:text-orange-500 transition-colors">
             {isSearching ? (
               <svg className="w-[18px] h-[18px] animate-spin text-orange-400" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -725,12 +745,12 @@ export default function SearchClient({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="제품명 또는 브랜드 검색"
-            className="w-full pl-11 pr-10 py-3 bg-white border border-stone-200 rounded-2xl focus:outline-none focus:border-orange-400 shadow-sm text-sm font-medium text-stone-700 placeholder:text-stone-400"
+            className="w-full pl-11 pr-10 py-3 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:border-orange-400 shadow-sm text-sm font-medium text-gray-700 placeholder:text-gray-400"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="absolute inset-y-0 right-4 flex items-center text-stone-400 hover:text-stone-600"
+              className="absolute inset-y-0 right-4 flex items-center text-gray-400 hover:text-gray-600"
             >
               <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -748,11 +768,12 @@ export default function SearchClient({
                 onClick={() => {
                   setCategoryFilter(key)
                   if (key !== "formula") { setStageFilter(null); setOriginFilter("all") }
+                  if (key !== "milk") { setMilkTargetFilter("all") }
                 }}
                 className={`px-3 py-1.5 rounded-xl text-[12px] font-bold whitespace-nowrap transition-colors shrink-0 ${
                   categoryFilter === key
                     ? activeClass
-                    : "bg-white border border-stone-200 text-stone-500"
+                    : "bg-white border border-gray-200 text-gray-500"
                 }`}
               >
                 {label}
@@ -766,7 +787,7 @@ export default function SearchClient({
             </span>
             <button
               onClick={() => setReferenceProduct(null)}
-              className="ml-auto text-[11px] font-bold text-stone-400 hover:text-stone-600"
+              className="ml-auto text-[11px] font-bold text-gray-400 hover:text-gray-600"
             >
               전체 목록으로
             </button>
@@ -778,7 +799,7 @@ export default function SearchClient({
           <div className="flex flex-col gap-2 mb-2">
             {/* 단계 필터 */}
             <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
-              <span className="text-[10px] font-bold text-stone-400 shrink-0">단계</span>
+              <span className="text-[10px] font-bold text-gray-400 shrink-0">단계</span>
               {[0, 1, 2, 3].map((stage) => {
                 const count = stageProductCounts[stage] ?? 0
                 const label = stage === 0 ? "PRE" : `${stage}단계`
@@ -789,7 +810,7 @@ export default function SearchClient({
                     className={`px-2.5 py-1 rounded-xl text-[12px] font-bold whitespace-nowrap transition-colors shrink-0 ${
                       stageFilter === stage
                         ? "bg-blue-500 text-white"
-                        : "bg-white border border-stone-200 text-stone-500 hover:border-blue-300 hover:text-blue-500"
+                        : "bg-white border border-gray-200 text-gray-500 hover:border-blue-300 hover:text-blue-500"
                     }`}
                   >
                     {label}{count > 0 ? `(${count})` : ""}
@@ -799,7 +820,7 @@ export default function SearchClient({
               {stageFilter !== null && (
                 <button
                   onClick={() => setStageFilter(null)}
-                  className="text-[11px] font-bold text-stone-400 hover:text-stone-600 shrink-0"
+                  className="text-[11px] font-bold text-gray-400 hover:text-gray-600 shrink-0"
                 >
                   전체
                 </button>
@@ -807,7 +828,7 @@ export default function SearchClient({
             </div>
             {/* 국내/해외 필터 */}
             <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
-              <span className="text-[10px] font-bold text-stone-400 shrink-0">원산지</span>
+              <span className="text-[10px] font-bold text-gray-400 shrink-0">원산지</span>
               {([
                 { key: "all",      label: "전체" },
                 { key: "domestic", label: "🇰🇷 국내" },
@@ -819,7 +840,7 @@ export default function SearchClient({
                   className={`px-2.5 py-1 rounded-xl text-[12px] font-bold whitespace-nowrap transition-colors shrink-0 ${
                     originFilter === key
                       ? "bg-blue-500 text-white"
-                      : "bg-white border border-stone-200 text-stone-500 hover:border-blue-300 hover:text-blue-500"
+                      : "bg-white border border-gray-200 text-gray-500 hover:border-blue-300 hover:text-blue-500"
                   }`}
                 >
                   {label}
@@ -829,13 +850,37 @@ export default function SearchClient({
           </div>
         )}
 
+        {/* 우유 하위 필터: 유아용/일반 — milk 탭에서만 */}
+        {!referenceProduct && !debouncedQuery && categoryFilter === "milk" && (
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide mb-2">
+            <span className="text-[10px] font-bold text-gray-400 shrink-0">대상</span>
+            {([
+              { key: "all",      label: "전체" },
+              { key: "toddler",  label: `👶 유아용(${milkTargetCounts.toddler})` },
+              { key: "general",  label: `🥛 일반(${milkTargetCounts.general})` },
+            ] as { key: "all" | "toddler" | "general"; label: string }[]).map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => setMilkTargetFilter(key)}
+                className={`px-2.5 py-1 rounded-xl text-[12px] font-bold whitespace-nowrap transition-colors shrink-0 ${
+                  milkTargetFilter === key
+                    ? "bg-blue-500 text-white"
+                    : "bg-white border border-gray-200 text-gray-500 hover:border-blue-300 hover:text-blue-500"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* 영양소 필터 — 건기식 탭일 때만 */}
         {!referenceProduct && categoryFilter === "supplement" && (
           <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
             <button
               onClick={() => setActiveNutrient(null)}
               className={`px-3.5 py-1.5 rounded-xl text-[13px] font-bold whitespace-nowrap transition-colors shrink-0 ${
-                activeNutrient === null ? "bg-stone-800 text-white" : "bg-white border border-stone-200 text-stone-500"
+                activeNutrient === null ? "bg-gray-800 text-white" : "bg-white border border-gray-200 text-gray-500"
               }`}
             >
               전체보기
@@ -848,10 +893,10 @@ export default function SearchClient({
                   onClick={() => handleNutrientClick(nutrient)}
                   className={`relative px-3.5 py-1.5 rounded-xl text-[13px] font-bold whitespace-nowrap transition-colors shrink-0 ${
                     activeNutrient === nutrient
-                      ? "bg-stone-800 text-white"
+                      ? "bg-gray-800 text-white"
                       : isUnder
                       ? "bg-amber-50 border border-amber-200 text-amber-700"
-                      : "bg-white border border-stone-200 text-stone-500"
+                      : "bg-white border border-gray-200 text-gray-500"
                   }`}
                 >
                   {nutrient}
@@ -879,14 +924,14 @@ export default function SearchClient({
 
         {/* 홈 진입 맥락 인디케이터 */}
         {!debouncedQuery && initialNutrient && activeNutrient === initialNutrient && (
-          <div className="mx-5 mt-2 flex items-center justify-between bg-stone-50 border border-stone-100 rounded-xl px-3 py-1.5">
-            <span className="text-[10px] font-bold text-stone-400">
+          <div className="mx-5 mt-2 flex items-center justify-between bg-gray-50 border border-gray-100 rounded-xl px-3 py-1.5">
+            <span className="text-[10px] font-bold text-gray-400">
               홈에서 이어서 살펴보는 중 ·{" "}
               <span className="text-orange-500">{initialNutrient}</span>
             </span>
             <button
               onClick={() => setActiveNutrient(null)}
-              className="text-[10px] font-bold text-stone-400 hover:text-stone-600"
+              className="text-[10px] font-bold text-gray-400 hover:text-gray-600"
             >
               전체 보기
             </button>
@@ -896,10 +941,10 @@ export default function SearchClient({
         {/* 활성 필터 칩 */}
         {activeNutrient && (
           <div className="flex items-center gap-2 px-5 py-2 overflow-x-auto scrollbar-hide">
-            <span className="text-[10px] font-bold text-stone-400 shrink-0">필터</span>
+            <span className="text-[10px] font-bold text-gray-400 shrink-0">필터</span>
             <button
               onClick={() => setActiveNutrient(null)}
-              className="flex items-center gap-1 text-[10px] font-extrabold text-stone-700 bg-stone-100 px-2.5 py-1 rounded-full hover:bg-stone-200 transition-colors shrink-0"
+              className="flex items-center gap-1 text-[10px] font-extrabold text-gray-700 bg-gray-100 px-2.5 py-1 rounded-full hover:bg-gray-200 transition-colors shrink-0"
             >
               {activeNutrient}
               <svg width={8} height={8} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
@@ -912,7 +957,7 @@ export default function SearchClient({
         <div className="px-5 pb-4 pt-3 flex flex-col gap-3">
           {/* 모드별 결과 헤더 */}
           {referenceProduct && displayedProducts.length > 0 && (
-            <p className="text-[11px] font-bold text-stone-400 text-center py-1">
+            <p className="text-[11px] font-bold text-gray-400 text-center py-1">
               성분 기준 비슷한 제품 {displayedProducts.length}개 · 탭해서 기준 제품으로 전환할 수 있어요
             </p>
           )}
@@ -921,9 +966,14 @@ export default function SearchClient({
               {stageFilter === 0 ? "PRE" : stageFilter}단계 분유 {displayedProducts.filter((p) => p.category === "formula").length}개
             </p>
           )}
+          {milkTargetFilter !== "all" && !referenceProduct && displayedProducts.length > 0 && (
+            <p className="text-[11px] font-bold text-blue-400 text-center py-1">
+              {milkTargetFilter === "toddler" ? "유아용" : "일반"} 우유 {displayedProducts.filter((p) => p.category === "milk").length}개
+            </p>
+          )}
 
           {displayedProducts.length === 0 ? (
-            <div className="text-center py-10 text-stone-400 text-sm font-bold">
+            <div className="text-center py-10 text-gray-400 text-sm font-bold">
               {referenceProduct
                 ? (() => {
                     const cap = getComparisonCapability(referenceProduct)
