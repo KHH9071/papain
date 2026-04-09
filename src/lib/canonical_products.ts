@@ -35,7 +35,7 @@
  *   // ]
  */
 
-import { supabase } from "@/lib/supabase/client"
+import { createClient } from "@/lib/supabase/server"
 import type {
   CanonicalProduct,
   CanonicalProductCountryVersion,
@@ -49,6 +49,7 @@ import type {
  * 오류 시 빈 배열 반환 (앱 중단 방지).
  */
 export async function listCanonicalProducts(): Promise<CanonicalProduct[]> {
+  const supabase = await createClient()
   const { data, error } = await supabase
     .from("canonical_product")
     .select("*")
@@ -69,6 +70,7 @@ export async function listCanonicalProducts(): Promise<CanonicalProduct[]> {
 export async function getCanonicalProductById(
   id: string
 ): Promise<CanonicalProduct | null> {
+  const supabase = await createClient()
   const { data, error } = await supabase
     .from("canonical_product")
     .select("*")
@@ -95,6 +97,7 @@ export async function getCanonicalProductById(
 export async function listCanonicalProductsByCountry(
   countryVersion: CanonicalProductCountryVersion
 ): Promise<CanonicalProduct[]> {
+  const supabase = await createClient()
   const { data, error } = await supabase
     .from("canonical_product")
     .select("*")
@@ -116,6 +119,7 @@ export async function listCanonicalProductsByCountry(
 export async function listCanonicalProductsByStage(
   stage: CanonicalProductStage
 ): Promise<CanonicalProduct[]> {
+  const supabase = await createClient()
   const { data, error } = await supabase
     .from("canonical_product")
     .select("*")
@@ -139,6 +143,7 @@ export async function listCanonicalProductsByFilter(filter: {
   stage?: CanonicalProductStage
   brand?: string
 }): Promise<CanonicalProduct[]> {
+  const supabase = await createClient()
   let query = supabase.from("canonical_product").select("*")
 
   if (filter.countryVersion) {

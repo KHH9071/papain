@@ -1,10 +1,11 @@
-import { supabase } from "@/lib/supabase/client"
+import { createClient } from "@/lib/supabase/server"
 import { listCanonicalProducts } from "@/lib/canonical_products"
 import { canonicalProductsToProducts } from "@/lib/canonical_to_product"
 import SearchClient from "../_components/SearchClient"
 import type { Product } from "@/lib/types"
 
 async function getProducts(): Promise<Product[]> {
+  const supabase = await createClient()
   const { data, error } = await supabase
     .from("products")
     .select("*")

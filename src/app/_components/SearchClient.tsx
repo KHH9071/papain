@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
-import { supabase } from "@/lib/supabase/client"
+import Link from "next/link"
+import { createClient } from "@/lib/supabase/client"
 import { useAppStore } from "@/lib/store"
 import { getAgeGroup } from "@/lib/kdri_data"
 import { PERIOD_CONFIG, getNutrientGaps } from "@/lib/nutrition_utils"
@@ -26,6 +27,14 @@ const PRODUCT_COLORS = [
 ]
 
 type CategoryFilter = "all" | "supplement" | "formula" | "milk" | "cheese"
+type SortOption = "default" | "name" | "nutrient-desc" | "nutrient-asc"
+
+const SORT_OPTIONS: { key: SortOption; label: string }[] = [
+  { key: "default",       label: "기본순" },
+  { key: "name",          label: "이름순" },
+  { key: "nutrient-desc", label: "영양소 ↓" },
+  { key: "nutrient-asc",  label: "영양소 ↑" },
+]
 
 // ─── 유사 제품 알고리즘 ────────────────────────────────────────────────────────
 function getSimilarProducts(
@@ -410,6 +419,19 @@ function MobileProductCard({
               </div>
             </div>
           )}
+
+          {/* 상세 보기 */}
+          <Link
+            href={`/product/${product.id}`}
+            className="w-full flex items-center justify-center gap-1.5 bg-gray-100 hover:bg-gray-200 rounded-xl px-3 py-2.5 mt-3 transition-colors group"
+          >
+            <span className="text-[11px] font-extrabold text-gray-500 group-hover:text-gray-700">
+              상세 정보 보기
+            </span>
+            <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 group-hover:text-gray-600">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </Link>
         </div>
       )}
     </div>
@@ -493,6 +515,7 @@ export default function SearchClient({
   const [stageFilter, setStageFilter]           = useState<number | null>(null)
   const [originFilter, setOriginFilter]         = useState<"all" | "domestic" | "overseas">("all")
   const [milkTargetFilter, setMilkTargetFilter] = useState<"all" | "toddler" | "general">("all")
+  const [sortOption, setSortOption]             = useState<SortOption>("default")
 
   const colorMap = new Map(
     selectedProducts
@@ -536,7 +559,7 @@ export default function SearchClient({
       return
     }
     setIsSearching(true)
-    supabase
+    createClient()
       .from("products")
       .select("*")
       .or(`product_name.ilike.%${term}%,manufacturer.ilike.%${term}%`)
@@ -627,8 +650,21 @@ export default function SearchClient({
       })
     }
 
+    // 정렬
+    if (sortOption === "name") {
+      combined.sort((a, b) => a.product_name.localeCompare(b.product_name, "ko"))
+    } else if (sortOption === "nutrient-desc" || sortOption === "nutrient-asc") {
+      const sortNutrient = activeNutrient ?? "칼슘"
+      const dir = sortOption === "nutrient-desc" ? -1 : 1
+      combined.sort((a, b) => {
+        const aAmt = a.nutrients.find((n) => n.name === sortNutrient)?.amount ?? 0
+        const bAmt = b.nutrients.find((n) => n.name === sortNutrient)?.amount ?? 0
+        return (aAmt - bAmt) * dir
+      })
+    }
+
     return combined
-  }, [referenceProduct, dbProducts, debouncedQuery, categoryFilter, activeNutrient, stageFilter, originFilter, milkTargetFilter, allProductsPool, allRoutineProducts])
+  }, [referenceProduct, dbProducts, debouncedQuery, categoryFilter, activeNutrient, stageFilter, originFilter, milkTargetFilter, allProductsPool, allRoutineProducts, sortOption])
 
   // ── formula 단계별 제품 수 ────────────────────────────────────────────────
   const stageProductCounts = useMemo(() => {
@@ -874,6 +910,32 @@ export default function SearchClient({
           </div>
         )}
 
+        {/* 정렬 옵션 */}
+        {!referenceProduct && (
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide mb-2">
+            <span className="text-[10px] font-bold text-gray-400 shrink-0">정렬</span>
+            {SORT_OPTIONS.map(({ key, label }) => {
+              // 영양소 정렬에 현재 필터 이름 표시
+              const displayLabel = (key === "nutrient-desc" || key === "nutrient-asc")
+                ? `${activeNutrient ?? "칼슘"} ${key === "nutrient-desc" ? "↓" : "↑"}`
+                : label
+              return (
+                <button
+                  key={key}
+                  onClick={() => setSortOption(key)}
+                  className={`px-2.5 py-1 rounded-xl text-[11px] font-bold whitespace-nowrap transition-colors shrink-0 ${
+                    sortOption === key
+                      ? "bg-gray-800 text-white"
+                      : "bg-white border border-gray-200 text-gray-500 hover:border-gray-400"
+                  }`}
+                >
+                  {displayLabel}
+                </button>
+              )
+            })}
+          </div>
+        )}
+
         {/* 영양소 필터 — 건기식 탭일 때만 */}
         {!referenceProduct && categoryFilter === "supplement" && (
           <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
@@ -955,6 +1017,24 @@ export default function SearchClient({
         )}
 
         <div className="px-5 pb-4 pt-3 flex flex-col gap-3">
+          {/* 결과 카운트 */}
+          {!referenceProduct && displayedProducts.length > 0 && (
+            <div className="flex items-center justify-between">
+              <p className="text-[11px] font-medium text-gray-400">
+                {displayedProducts.length}개 제품
+                {activeNutrient && <span className="text-orange-500 ml-1">· {activeNutrient}</span>}
+                {sortOption !== "default" && (
+                  <span className="text-gray-400 ml-1">
+                    · {SORT_OPTIONS.find((o) => o.key === sortOption)?.label}
+                  </span>
+                )}
+              </p>
+              <p className="text-[10px] text-gray-300">
+                {selectedProducts.length}개 선택됨
+              </p>
+            </div>
+          )}
+
           {/* 모드별 결과 헤더 */}
           {referenceProduct && displayedProducts.length > 0 && (
             <p className="text-[11px] font-bold text-gray-400 text-center py-1">

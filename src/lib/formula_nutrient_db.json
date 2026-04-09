@@ -1,8 +1,8 @@
 {
   "_generated_by": "collect_formula_nutrients.py",
-  "_generated_at": "2026-03-27T21:47:26.008165+00:00",
+  "_generated_at": "2026-03-29T00:56:43.357621+00:00",
   "_summary": {
-    "total_profiles": 67,
+    "total_profiles": 122,
     "canonical_profiles": 41,
     "kr_profiles": 26,
     "validation_warnings": 0
@@ -877,6 +877,534 @@
         "비타민A||μg RE": 62,
         "단백질||g": 1.7,
         "DHA||mg": 6.0
+      }
+    },
+    "milk_group_서울우유_서울우유_1000ml": {
+      "source": "official_brand_seoul_milk + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 110,
+        "단백질||g": 3.2,
+        "비타민D||μg": 0.5,
+        "비타민A||μg RE": 38,
+        "비타민B2||mg": 0.15
+      }
+    },
+    "milk_group_서울우유_앙팡_우유_200ml": {
+      "source": "official_brand_seoul_milk + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 130,
+        "단백질||g": 3.0,
+        "비타민D||μg": 1.0,
+        "비타민A||μg RE": 50,
+        "비타민B2||mg": 0.18,
+        "DHA||mg": 8
+      }
+    },
+    "milk_group_서울우유_유기농_우유_900ml": {
+      "source": "official_brand_seoul_milk + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 112,
+        "단백질||g": 3.3,
+        "비타민D||μg": 0.4,
+        "비타민A||μg RE": 40,
+        "비타민B2||mg": 0.16
+      }
+    },
+    "milk_group_매일유업_상하목장_유기농_우유_900ml": {
+      "source": "official_brand_maeil + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 115,
+        "단백질||g": 3.4,
+        "비타민D||μg": 0.4,
+        "비타민A||μg RE": 42,
+        "비타민B2||mg": 0.17
+      }
+    },
+    "milk_group_매일유업_상하목장_바른목장_우유_900ml": {
+      "source": "official_brand_maeil + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 108,
+        "단백질||g": 3.2,
+        "비타민D||μg": 0.5,
+        "비타민A||μg RE": 38,
+        "비타민B2||mg": 0.15
+      }
+    },
+    "milk_group_매일유업_소화가_잘되는_우유_900ml": {
+      "source": "official_brand_maeil + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 105,
+        "단백질||g": 3.1,
+        "비타민D||μg": 0.5,
+        "비타민A||μg RE": 36,
+        "비타민B2||mg": 0.14
+      }
+    },
+    "milk_group_매일유업_상하키즈_우유_200ml": {
+      "source": "official_brand_maeil + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 135,
+        "단백질||g": 3.0,
+        "비타민D||μg": 1.0,
+        "비타민A||μg RE": 55,
+        "비타민B2||mg": 0.2,
+        "DHA||mg": 6
+      }
+    },
+    "milk_group_남양유업_맛있는_우유_gt_900ml": {
+      "source": "official_brand_namyang + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 105,
+        "단백질||g": 3.1,
+        "비타민D||μg": 0.5,
+        "비타민A||μg RE": 35,
+        "비타민B2||mg": 0.14
+      }
+    },
+    "milk_group_남양유업_아이꼬야_우유_200ml": {
+      "source": "official_brand_namyang + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 128,
+        "단백질||g": 3.0,
+        "비타민D||μg": 1.0,
+        "비타민A||μg RE": 48,
+        "비타민B2||mg": 0.18,
+        "DHA||mg": 7
+      }
+    },
+    "milk_group_연세우유_연세우유_전용목장_900ml": {
+      "source": "official_brand_yonsei_milk + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 112,
+        "단백질||g": 3.3,
+        "비타민D||μg": 0.4,
+        "비타민A||μg RE": 40,
+        "비타민B2||mg": 0.16
+      }
+    },
+    "milk_group_연세우유_키즈_우유_200ml": {
+      "source": "official_brand_yonsei_milk + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 132,
+        "단백질||g": 3.0,
+        "비타민D||μg": 1.0,
+        "비타민A||μg RE": 52,
+        "비타민B2||mg": 0.19,
+        "DHA||mg": 7
+      }
+    },
+    "milk_group_일동후디스_하이키드_우유_200ml": {
+      "source": "official_brand_ildong + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 140,
+        "단백질||g": 3.0,
+        "비타민D||μg": 1.2,
+        "비타민A||μg RE": 55,
+        "비타민B2||mg": 0.2,
+        "DHA||mg": 10
+      }
+    },
+    "milk_group_롯데푸드_파스퇴르_우유_900ml": {
+      "source": "official_brand_lotte_pasteur + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 108,
+        "단백질||g": 3.2,
+        "비타민D||μg": 0.5,
+        "비타민A||μg RE": 38,
+        "비타민B2||mg": 0.15
+      }
+    },
+    "milk_group_롯데푸드_파스퇴르_바른목장_유기농_900ml": {
+      "source": "official_brand_lotte_pasteur + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 110,
+        "단백질||g": 3.3,
+        "비타민D||μg": 0.4,
+        "비타민A||μg RE": 40,
+        "비타민B2||mg": 0.16
+      }
+    },
+    "cheese_group_서울우유협동조합_앙팡_아기치즈_1단계_10p": {
+      "source": "official_brand_seoul_milk + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 105,
+        "단백질||g": 2.8,
+        "나트륨||mg": 55,
+        "비타민D||μg": 0.3
+      }
+    },
+    "cheese_group_서울우유협동조합_앙팡_아기치즈_2단계_10p": {
+      "source": "official_brand_seoul_milk + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 110,
+        "단백질||g": 3.0,
+        "나트륨||mg": 65,
+        "비타민D||μg": 0.3
+      }
+    },
+    "cheese_group_서울우유협동조합_앙팡_유기농_아기치즈_10p": {
+      "source": "official_brand_seoul_milk + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 100,
+        "단백질||g": 2.7,
+        "나트륨||mg": 50,
+        "비타민D||μg": 0.3
+      }
+    },
+    "cheese_group_서울우유협동조합_체다_슬라이스_치즈_20p": {
+      "source": "official_brand_seoul_milk + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 120,
+        "단백질||g": 3.5,
+        "나트륨||mg": 180
+      }
+    },
+    "cheese_group_매일유업_상하_아기치즈_10p": {
+      "source": "official_brand_maeil + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 108,
+        "단백질||g": 2.9,
+        "나트륨||mg": 58,
+        "비타민D||μg": 0.3
+      }
+    },
+    "cheese_group_매일유업_상하_유기농_아기치즈_10p": {
+      "source": "official_brand_maeil + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 102,
+        "단백질||g": 2.7,
+        "나트륨||mg": 52,
+        "비타민D||μg": 0.3
+      }
+    },
+    "cheese_group_매일유업_상하_슬라이스_치즈_20p": {
+      "source": "official_brand_maeil + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 118,
+        "단백질||g": 3.4,
+        "나트륨||mg": 175
+      }
+    },
+    "cheese_group_남양유업_드빈치_자연방목_아기치즈_10p": {
+      "source": "official_brand_namyang + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 112,
+        "단백질||g": 3.0,
+        "나트륨||mg": 60,
+        "비타민D||μg": 0.3
+      }
+    },
+    "cheese_group_동원f&b_덴마크_아기치즈_10p": {
+      "source": "official_brand_dongwon + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 115,
+        "단백질||g": 3.0,
+        "나트륨||mg": 55,
+        "비타민D||μg": 0.3
+      }
+    },
+    "cheese_group_동원f&b_덴마크_슬라이스_치즈_20p": {
+      "source": "official_brand_dongwon + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 122,
+        "단백질||g": 3.5,
+        "나트륨||mg": 185
+      }
+    },
+    "cheese_group_소와나무_1등급_아기치즈_10p": {
+      "source": "official_brand_sowanamu + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 100,
+        "단백질||g": 2.8,
+        "나트륨||mg": 50,
+        "비타민D||μg": 0.3
+      }
+    },
+    "cheese_group_빙그레_끼리_아기치즈_10p": {
+      "source": "official_brand_binggrae + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 98,
+        "단백질||g": 2.6,
+        "나트륨||mg": 48,
+        "비타민D||μg": 0.3
+      }
+    },
+    "cheese_group_서울우유협동조합_앙팡_아기치즈_3단계_10p": {
+      "source": "official_brand_seoul_milk + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 115,
+        "단백질||g": 3.2,
+        "나트륨||mg": 72,
+        "비타민D||μg": 0.3
+      }
+    },
+    "cheese_group_서울우유협동조합_앙팡_dha_아기치즈_10p": {
+      "source": "official_brand_seoul_milk + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 105,
+        "단백질||g": 2.8,
+        "나트륨||mg": 55,
+        "비타민D||μg": 0.3,
+        "DHA||mg": 12
+      }
+    },
+    "cheese_group_서울우유협동조합_앙팡_칼슘치즈_10p": {
+      "source": "official_brand_seoul_milk + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 150,
+        "단백질||g": 2.8,
+        "나트륨||mg": 58,
+        "비타민D||μg": 0.3
+      }
+    },
+    "cheese_group_매일유업_상하_아기치즈_1단계_10p": {
+      "source": "official_brand_maeil + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 108,
+        "단백질||g": 2.9,
+        "나트륨||mg": 58,
+        "비타민D||μg": 0.3
+      }
+    },
+    "cheese_group_매일유업_상하_아기치즈_2단계_10p": {
+      "source": "official_brand_maeil + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 112,
+        "단백질||g": 3.1,
+        "나트륨||mg": 68,
+        "비타민D||μg": 0.3
+      }
+    },
+    "cheese_group_매일유업_상하키즈_치즈_10p": {
+      "source": "official_brand_maeil + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 118,
+        "단백질||g": 3.2,
+        "나트륨||mg": 70,
+        "비타민D||μg": 0.3
+      }
+    },
+    "cheese_group_매일유업_상하_스트링치즈_5p": {
+      "source": "official_brand_maeil + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 130,
+        "단백질||g": 4.2,
+        "나트륨||mg": 110
+      }
+    },
+    "cheese_group_남양유업_드빈치_유기농_아기치즈_10p": {
+      "source": "official_brand_namyang + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 108,
+        "단백질||g": 2.9,
+        "나트륨||mg": 55,
+        "비타민D||μg": 0.3
+      }
+    },
+    "cheese_group_동원f&b_덴마크_유기농_아기치즈_10p": {
+      "source": "official_brand_dongwon + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 110,
+        "단백질||g": 2.9,
+        "나트륨||mg": 52,
+        "비타민D||μg": 0.3
+      }
+    },
+    "cheese_group_동원f&b_덴마크_아이_간식치즈_10p": {
+      "source": "official_brand_dongwon + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 108,
+        "단백질||g": 2.8,
+        "나트륨||mg": 62,
+        "비타민D||μg": 0.3
+      }
+    },
+    "cheese_group_소와나무_유기농_아기치즈_10p": {
+      "source": "official_brand_sowanamu + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 98,
+        "단백질||g": 2.7,
+        "나트륨||mg": 48,
+        "비타민D||μg": 0.3
+      }
+    },
+    "cheese_group_빙그레_끼리_크림치즈_포션_6p": {
+      "source": "official_brand_binggrae + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 62,
+        "단백질||g": 1.8,
+        "나트륨||mg": 75
+      }
+    },
+    "cheese_group_정식품_베지밀_아기치즈_10p": {
+      "source": "official_brand_jungsikpum + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 105,
+        "단백질||g": 2.8,
+        "나트륨||mg": 52,
+        "비타민D||μg": 0.3
+      }
+    },
+    "milk_group_서울우유_앙팡_dha_우유_200ml": {
+      "source": "official_brand_seoul_milk + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 130,
+        "단백질||g": 3.0,
+        "비타민D||μg": 1.0,
+        "비타민A||μg RE": 50,
+        "비타민B2||mg": 0.18,
+        "DHA||mg": 15
+      }
+    },
+    "milk_group_서울우유_앙팡_유기농_우유_200ml": {
+      "source": "official_brand_seoul_milk + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 125,
+        "단백질||g": 3.0,
+        "비타민D||μg": 0.8,
+        "비타민A||μg RE": 48,
+        "비타민B2||mg": 0.17
+      }
+    },
+    "milk_group_서울우유_저지방_우유_1000ml": {
+      "source": "official_brand_seoul_milk + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 115,
+        "단백질||g": 3.4,
+        "비타민D||μg": 0.5,
+        "비타민A||μg RE": 25,
+        "비타민B2||mg": 0.16
+      }
+    },
+    "milk_group_매일유업_매일우유_1000ml": {
+      "source": "official_brand_maeil + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 108,
+        "단백질||g": 3.2,
+        "비타민D||μg": 0.5,
+        "비타민A||μg RE": 38,
+        "비타민B2||mg": 0.15
+      }
+    },
+    "milk_group_매일유업_상하목장_저지방_우유_900ml": {
+      "source": "official_brand_maeil + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 112,
+        "단백질||g": 3.4,
+        "비타민D||μg": 0.5,
+        "비타민A||μg RE": 26,
+        "비타민B2||mg": 0.16
+      }
+    },
+    "milk_group_매일유업_셀렉스_키즈_우유_200ml": {
+      "source": "official_brand_maeil + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 140,
+        "단백질||g": 3.2,
+        "비타민D||μg": 1.2,
+        "비타민A||μg RE": 58,
+        "비타민B2||mg": 0.2,
+        "DHA||mg": 8
+      }
+    },
+    "milk_group_남양유업_맛있는_우유_gt_저지방_900ml": {
+      "source": "official_brand_namyang + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 108,
+        "단백질||g": 3.3,
+        "비타민D||μg": 0.5,
+        "비타민A||μg RE": 24,
+        "비타민B2||mg": 0.15
+      }
+    },
+    "milk_group_남양유업_아이꼬야_유기농_우유_200ml": {
+      "source": "official_brand_namyang + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 125,
+        "단백질||g": 3.0,
+        "비타민D||μg": 0.8,
+        "비타민A||μg RE": 45,
+        "비타민B2||mg": 0.17
+      }
+    },
+    "milk_group_연세우유_연세_유기농_우유_900ml": {
+      "source": "official_brand_yonsei_milk + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 114,
+        "단백질||g": 3.4,
+        "비타민D||μg": 0.4,
+        "비타민A||μg RE": 42,
+        "비타민B2||mg": 0.17
+      }
+    },
+    "milk_group_롯데푸드_파스퇴르_저지방_우유_900ml": {
+      "source": "official_brand_lotte_pasteur + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 112,
+        "단백질||g": 3.4,
+        "비타민D||μg": 0.5,
+        "비타민A||μg RE": 25,
+        "비타민B2||mg": 0.16
+      }
+    },
+    "milk_group_빙그레_빙그레_흰_우유_1000ml": {
+      "source": "official_brand_binggrae + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 105,
+        "단백질||g": 3.1,
+        "비타민D||μg": 0.4,
+        "비타민A||μg RE": 36,
+        "비타민B2||mg": 0.14
+      }
+    },
+    "milk_group_빙그레_바나나맛_우유_240ml": {
+      "source": "official_brand_binggrae + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 68,
+        "단백질||g": 2.1,
+        "비타민D||μg": 0.2,
+        "비타민A||μg RE": 22,
+        "비타민B2||mg": 0.08
+      }
+    },
+    "milk_group_빙그레_딸기맛_우유_240ml": {
+      "source": "official_brand_binggrae + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 65,
+        "단백질||g": 2.0,
+        "비타민D||μg": 0.2,
+        "비타민A||μg RE": 20,
+        "비타민B2||mg": 0.07
+      }
+    },
+    "milk_group_푸르밀_가야농장_우유_900ml": {
+      "source": "official_brand_purmil + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 108,
+        "단백질||g": 3.2,
+        "비타민D||μg": 0.4,
+        "비타민A||μg RE": 37,
+        "비타민B2||mg": 0.15
+      }
+    },
+    "milk_group_푸르밀_검은콩_우유_190ml": {
+      "source": "official_brand_purmil + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 75,
+        "단백질||g": 2.5,
+        "비타민D||μg": 0.3,
+        "비타민A||μg RE": 25,
+        "비타민B2||mg": 0.1
+      }
+    },
+    "milk_group_건국우유_건국우유_1000ml": {
+      "source": "official_brand_geonkuk + kr_food_safety_db",
+      "nutrients": {
+        "칼슘||mg": 108,
+        "단백질||g": 3.2,
+        "비타민D||μg": 0.4,
+        "비타민A||μg RE": 37,
+        "비타민B2||mg": 0.15
       }
     }
   }

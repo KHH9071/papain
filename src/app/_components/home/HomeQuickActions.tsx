@@ -11,8 +11,8 @@ type QuickAction = {
 // 파파인식 퀵 액션 — 카테고리 그리드 대신 압축된 탐색 진입
 const QUICK_ACTIONS: QuickAction[] = [
   { label: "분유 찾기",   href: "/search?category=formula",                         icon: "🍼" },
-  { label: "우유 비교",   href: "/search?category=milk",                            icon: "🥛" },
-  { label: "칼슘 제품",   href: `/search?nutrient=${encodeURIComponent("칼슘")}`,   icon: "🦴" },
+  { label: "우유 찾기",   href: "/search?category=milk",                            icon: "🥛" },
+  { label: "제품 비교",   href: "/compare",                                          icon: "⚖️" },
   { label: "기록 추가",   href: "/record",                                           icon: "📝" },
 ]
 

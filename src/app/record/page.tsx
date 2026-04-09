@@ -77,6 +77,24 @@ function pctLabel(p: number) {
   return "또래보다 많이 커요"
 }
 
+// ─── BMI 계산 ─────────────────────────────────────────────────────────────────
+function calcBMI(heightCm: number, weightKg: number): number {
+  const heightM = heightCm / 100
+  return parseFloat((weightKg / (heightM * heightM)).toFixed(1))
+}
+
+function bmiLabel(bmi: number, monthsOld: number): { text: string; cls: string } {
+  // 간이 기준 (영유아): WHO 기준 대비 대략적 분류
+  if (monthsOld <= 24) {
+    if (bmi < 14) return { text: "저체중 경향", cls: "text-blue-600 bg-blue-50" }
+    if (bmi <= 18) return { text: "정상 범위", cls: "text-emerald-600 bg-emerald-50" }
+    return { text: "과체중 경향", cls: "text-amber-600 bg-amber-50" }
+  }
+  if (bmi < 13.5) return { text: "저체중 경향", cls: "text-blue-600 bg-blue-50" }
+  if (bmi <= 17) return { text: "정상 범위", cls: "text-emerald-600 bg-emerald-50" }
+  return { text: "과체중 경향", cls: "text-amber-600 bg-amber-50" }
+}
+
 function pctColor(p: number) {
   if (p <= 5)  return "#3b82f6"
   if (p <= 25) return "#06b6d4"
@@ -700,6 +718,26 @@ export default function RecordPage() {
                   <div className="w-px bg-gray-100" />
                   <PercentileBar value={latestRecord.weight} row={latestWRow} label="체중" />
                 </div>
+                {/* BMI */}
+                {latestRecord && (
+                  <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
+                    <span className="text-[11px] font-medium text-gray-400">BMI</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-extrabold text-gray-800">
+                        {calcBMI(latestRecord.height, latestRecord.weight)}
+                      </span>
+                      {(() => {
+                        const bmi = calcBMI(latestRecord.height, latestRecord.weight)
+                        const info = bmiLabel(bmi, latestRecord.monthsOld)
+                        return (
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${info.cls}`}>
+                            {info.text}
+                          </span>
+                        )
+                      })()}
+                    </div>
+                  </div>
+                )}
                 {latestIsApprox && latestHMatch && (
                   <p className="text-[10px] text-gray-400 text-center mt-2">
                     * {latestHMatch.nearestMonth}개월 기준 참고 곡선이에요
@@ -779,13 +817,17 @@ export default function RecordPage() {
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-col gap-3">
                 <h2 className="text-sm font-extrabold text-gray-700">측정 기록</h2>
                 <div className="flex flex-col gap-2">
-                  {[...growthRecords].reverse().map((r) => {
+                  {[...growthRecords].reverse().map((r, idx, reversed) => {
                     const hMatch  = findNearestGrowthRow(heightData, r.monthsOld)
                     const wMatch  = findNearestGrowthRow(weightData, r.monthsOld)
                     const hPct    = hMatch ? calcPct(r.height, hMatch.row) : null
                     const wPct    = wMatch ? calcPct(r.weight, wMatch.row) : null
                     const isApprox = hMatch !== null && !hMatch.exact
                     const isEditing = localMonths === r.monthsOld && heightInput !== ""
+                    // 이전 기록 대비 변화량 (reversed 순서이므로 다음 인덱스가 이전 기록)
+                    const prevRecord = idx < reversed.length - 1 ? reversed[idx + 1] : null
+                    const heightDelta = prevRecord ? parseFloat((r.height - prevRecord.height).toFixed(1)) : null
+                    const weightDelta = prevRecord ? parseFloat((r.weight - prevRecord.weight).toFixed(2)) : null
                     return (
                       <div key={r.monthsOld} className={`flex items-center justify-between rounded-xl px-3 py-2.5 transition-colors ${isEditing ? "bg-amber-50 border border-amber-200" : "bg-gray-50"}`}>
                         <div className="flex items-center gap-3">
@@ -793,13 +835,20 @@ export default function RecordPage() {
                           <div>
                             <p className="text-[10px] font-bold text-gray-400">{r.date}</p>
                             <p className="text-sm font-extrabold text-gray-800">{r.height}cm · {r.weight}kg</p>
-                            {hPct !== null && wPct !== null && (
-                              <p className="text-[10px] font-bold text-gray-400 mt-0.5">
-                                키 <span style={{ color: pctColor(hPct) }}>P{hPct}</span>
-                                {" · "}체중 <span style={{ color: pctColor(wPct) }}>P{wPct}</span>
-                                {isApprox && <span className="text-gray-300 ml-1">(참고)</span>}
-                              </p>
-                            )}
+                            <div className="flex items-center gap-2 mt-0.5">
+                              {hPct !== null && wPct !== null && (
+                                <span className="text-[10px] font-bold text-gray-400">
+                                  키 <span style={{ color: pctColor(hPct) }}>P{hPct}</span>
+                                  {" · "}체중 <span style={{ color: pctColor(wPct) }}>P{wPct}</span>
+                                  {isApprox && <span className="text-gray-300 ml-1">(참고)</span>}
+                                </span>
+                              )}
+                              {heightDelta !== null && weightDelta !== null && (
+                                <span className="text-[10px] font-bold text-blue-500">
+                                  {heightDelta > 0 ? "+" : ""}{heightDelta}cm {weightDelta > 0 ? "+" : ""}{weightDelta}kg
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-1">
@@ -849,6 +898,38 @@ export default function RecordPage() {
         {/* ────────────────── Sub 2: 영양 리포트 ────────────────── */}
         {pageTab === "nutrition" && (
           <>
+            {/* ⓪ 달성률 요약 */}
+            {selectedProducts.length > 0 && (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-extrabold text-gray-600">영양 달성 현황</span>
+                  <span className="text-[10px] font-bold text-gray-400">
+                    건기식 {selectedProducts.length}개 기준
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <div className={`flex-1 rounded-xl px-3 py-2.5 text-center ${exceededRows.length > 0 ? "bg-red-50 border border-red-100" : "bg-gray-50"}`}>
+                    <p className={`text-lg font-extrabold ${exceededRows.length > 0 ? "text-red-600" : "text-gray-300"}`}>
+                      {exceededRows.length}
+                    </p>
+                    <p className="text-[10px] font-bold text-gray-400 mt-0.5">상한 초과</p>
+                  </div>
+                  <div className={`flex-1 rounded-xl px-3 py-2.5 text-center ${deficientRows.length > 0 ? "bg-amber-50 border border-amber-100" : "bg-gray-50"}`}>
+                    <p className={`text-lg font-extrabold ${deficientRows.length > 0 ? "text-amber-600" : "text-gray-300"}`}>
+                      {deficientRows.length}
+                    </p>
+                    <p className="text-[10px] font-bold text-gray-400 mt-0.5">목표 미달</p>
+                  </div>
+                  <div className="flex-1 rounded-xl px-3 py-2.5 text-center bg-emerald-50 border border-emerald-100">
+                    <p className="text-lg font-extrabold text-emerald-600">
+                      {riRows.filter((r) => !r.isDeficient && !r.isExceeded).length}
+                    </p>
+                    <p className="text-[10px] font-bold text-gray-400 mt-0.5">목표 충족</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* ① 뷰 전환 세그먼티드 컨트롤 */}
             <div className="flex bg-gray-100 rounded-2xl p-1">
               <button

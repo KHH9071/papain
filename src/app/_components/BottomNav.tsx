@@ -2,33 +2,11 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useState, useEffect } from "react"
-
 export default function BottomNav() {
   const pathname = usePathname()
-  const [toast, setToast] = useState(false)
-
-  const showFakeDoor = () => {
-    setToast(true)
-  }
-
-  useEffect(() => {
-    if (!toast) return
-    const t = setTimeout(() => setToast(false), 2500)
-    return () => clearTimeout(t)
-  }, [toast])
 
   return (
     <>
-      {/* Fake Door Toast */}
-      {toast && (
-        <div className="absolute bottom-[80px] left-4 right-4 z-50 pointer-events-none">
-          <div className="bg-gray-800 text-white text-sm font-bold px-5 py-3.5 rounded-2xl text-center shadow-xl animate-fade-in">
-            곧 만나요! 지금은 홈·탐색·기록을 먼저 활용해보세요
-          </div>
-        </div>
-      )}
-
       {/* GNB — backdrop-blur, minimal */}
       <nav
         className="flex-shrink-0 bg-white/80 backdrop-blur-md border-t border-gray-100 z-40 flex items-stretch"
@@ -68,23 +46,27 @@ export default function BottomNav() {
           <span className="text-[10px] font-bold">기록</span>
         </Link>
 
-        {/* 라운지 — 준비중 */}
-        <button
-          onClick={showFakeDoor}
-          className="flex-1 flex flex-col items-center justify-center gap-0.5 text-gray-300 transition-colors"
+        {/* 라운지 */}
+        <Link
+          href="/lounge"
+          className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors ${
+            pathname === "/lounge" || pathname?.startsWith("/lounge/") ? "text-orange-600" : "text-gray-400 hover:text-gray-600"
+          }`}
         >
-          <IconLounge />
+          <IconLounge active={pathname === "/lounge" || pathname?.startsWith("/lounge/")} />
           <span className="text-[10px] font-bold">라운지</span>
-        </button>
+        </Link>
 
-        {/* 마이 — 준비중 */}
-        <button
-          onClick={showFakeDoor}
-          className="flex-1 flex flex-col items-center justify-center gap-0.5 text-gray-300 transition-colors"
+        {/* 마이 */}
+        <Link
+          href="/my"
+          className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors ${
+            pathname === "/my" ? "text-orange-600" : "text-gray-400 hover:text-gray-600"
+          }`}
         >
-          <IconMy />
+          <IconMy active={pathname === "/my"} />
           <span className="text-[10px] font-bold">마이</span>
-        </button>
+        </Link>
 
       </nav>
     </>
@@ -121,9 +103,9 @@ function IconRecord({ active }: { active: boolean }) {
   )
 }
 
-function IconLounge() {
+function IconLounge({ active }: { active: boolean }) {
   return (
-    <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.5 : 2} strokeLinecap="round" strokeLinejoin="round">
       <path d="M17 8h1a4 4 0 1 1 0 8h-1" />
       <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z" />
       <line x1="6" y1="1" x2="6" y2="4" />
@@ -133,9 +115,9 @@ function IconLounge() {
   )
 }
 
-function IconMy() {
+function IconMy({ active }: { active: boolean }) {
   return (
-    <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <svg width={22} height={22} viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth={active ? 0 : 2} strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="8" r="4" />
       <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
     </svg>

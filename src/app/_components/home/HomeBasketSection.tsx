@@ -140,16 +140,29 @@ export default function HomeBasketSection({ selectedProducts, toggleProduct, col
             )
           })}
 
-          {/* 더 추가하기 */}
-          <Link
-            href="/search"
-            className="flex items-center justify-center gap-1.5 py-3 text-sm font-bold text-orange-600 border-2 border-dashed border-orange-200 rounded-xl hover:bg-orange-50 transition-colors mt-1"
-          >
-            <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="7" /><line x1="20" y1="20" x2="16.1" y2="16.1" />
-            </svg>
-            제품 더 추가하기
-          </Link>
+          {/* 하단 액션 */}
+          <div className="flex gap-2 mt-1">
+            {selectedProducts.length >= 2 && (
+              <Link
+                href="/compare"
+                className="flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-bold text-blue-600 border-2 border-blue-200 rounded-xl hover:bg-blue-50 transition-colors"
+              >
+                <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" />
+                </svg>
+                비교하기
+              </Link>
+            )}
+            <Link
+              href="/search"
+              className="flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-bold text-orange-600 border-2 border-dashed border-orange-200 rounded-xl hover:bg-orange-50 transition-colors"
+            >
+              <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="7" /><line x1="20" y1="20" x2="16.1" y2="16.1" />
+              </svg>
+              제품 더 추가하기
+            </Link>
+          </div>
         </div>
       )}
     </section>

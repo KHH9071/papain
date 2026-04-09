@@ -107,6 +107,12 @@ export type ProductMetadata = {
    * 전성분 텍스트를 토큰화한 배열, 또는 원문 그대로 저장.
    */
   ingredients?: string[]
+
+  /**
+   * 우유 대상 — milk 카테고리 하위 필터에 사용.
+   * "toddler" = 유아용 우유, "general" = 일반 우유
+   */
+  milkTarget?: "toddler" | "general"
 }
 
 // ─── 영양소 ───────────────────────────────────────────────────────────────────
@@ -144,6 +150,15 @@ export type Product = {
    * @see ProductMetadata
    */
   metadata?: ProductMetadata
+  /** canonical_product 원본 데이터 (검증등급, 리콜 등). canonicalToProduct에서 채움. */
+  canonical?: {
+    evidenceGrade: string | null
+    recallStatus: string | null
+    recallSourceUrl: string | null
+    sourceCount: number
+    countryVersion: string
+    isRecommendable: boolean | null
+  }
 }
 
 // ─── 집계 영양소 ──────────────────────────────────────────────────────────────
